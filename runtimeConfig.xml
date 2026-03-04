@@ -1,0 +1,249 @@
+<configuration name='RNAseqAnalysis' description='paired end RNA seq analysis using STAR, feature counts, kallisto, arriba, RNAseQC and QualiMap2' workflowClass='de.dkfz.roddy.core.Analysis'>
+  <configurationvalues>
+    <cvalue name='sampleDirectory' value='${inputBaseDirectory}/${pid}/${sample}/${SEQUENCER_PROTOCOL}' />
+    <cvalue name='sequenceDirectory' value='${sampleDirectory}/${run}/sequence' />
+    <cvalue name='mergedBamSuffix_markDuplicatesShort' value='merged.mdup.bam' />
+    <cvalue name='mergedBamSuffixList' value='${mergedBamSuffix_markDuplicates},${mergedBamSuffix_markDuplicatesShort},${mergedBamSuffix_removeDuplicates}' />
+    <cvalue name='defaultMergedBamSuffix' value='${mergedBamSuffix_markDuplicatesShort}' />
+    <cvalue name='possibleControlSampleNamePrefixes' value='metastasis' />
+    <cvalue name='possibleTumorSampleNamePrefixes' value='' />
+    <cvalue name='useCentralAnalysisArchive' value='true' />
+    <cvalue name='enableJobProfiling' value='false' />
+    <cvalue name='QUAL' value='phred' />
+    <cvalue name='SEQUENCER_PROTOCOL' value='paired' />
+    <cvalue name='CORES' value='8' />
+    <cvalue name='FEATURE_COUNT_CORES' value='8' />
+    <cvalue name='TEST_RUN' value='false' />
+    <cvalue name='DO_FIRST' value='echo "Do something first"' />
+    <cvalue name='useSingleEndProcessing' value='false' />
+    <cvalue name='alignmentOutputDirectory' value='.' />
+    <cvalue name='qcOutputDirectory' value='qualitycontrol' />
+    <cvalue name='ALIGNMENT_DIR' value='/icgc/dkfzlsdf/project/hipo/hipo_021/sequencing/rna_sequencing/view-by-pid/H021-4H362B/metastasis/paired/merged-alignment/.merging_0' />
+    <cvalue name='SCRATCH' value='${ALIGNMENT_DIR}/roddy-scratch' />
+    <cvalue name='COUNT_DIR' value='${outputAnalysisBaseDirectory}/featureCounts' />
+    <cvalue name='COUNT_DIR_EXON' value='${outputAnalysisBaseDirectory}/featureCounts_dexseq' />
+    <cvalue name='KALLISTO_UN_DIR' value='${outputAnalysisBaseDirectory}/kallisto_un' />
+    <cvalue name='KALLISTO_FR_DIR' value='${outputAnalysisBaseDirectory}/kallisto_fr' />
+    <cvalue name='KALLISTO_RF_DIR' value='${outputAnalysisBaseDirectory}/kallisto_rf' />
+    <cvalue name='QC_DIR' value='${outputAnalysisBaseDirectory}/${qcOutputDirectory}' />
+    <cvalue name='RNASEQC_DIR' value='${QC_DIR}/RNAseQC' />
+    <cvalue name='QUALIMAP_DIR' value='${QC_DIR}/QualiMap2' />
+    <cvalue name='ARRIBA_DIR' value='${outputAnalysisBaseDirectory}/fusions_arriba' />
+    <cvalue name='STAR_PREFIX' value='${SAMPLE}_${pid}_merged' />
+    <cvalue name='STAR_CHIMERA_PREFIX' value='${SAMPLE}_${pid}_chimeric_merged' />
+    <cvalue name='STAR_NOTSORTED_BAM' value='${STAR_PREFIX}.Aligned.out.bam' />
+    <cvalue name='STAR_SORTED_BAM' value='${STAR_PREFIX}.Aligned.sortedByCoord.out.bam' />
+    <cvalue name='STAR_SORTED_MKDUP_BAM' value='${STAR_PREFIX}.mdup.bam' />
+    <cvalue name='STAR_SORTED_MKDUP_BAM2' value='${STAR_PREFIX}.mdup.bam' />
+    <cvalue name='STAR_CHIMERA_SAM' value='${STAR_PREFIX}.Chimeric.out.sam' />
+    <cvalue name='STAR_CHIMERA_BAM_PREF' value='${STAR_PREFIX}.Chimeric.out' />
+    <cvalue name='STAR_CHIMERA_MKDUP_BAM' value='${STAR_CHIMERA_PREFIX}.mdup.bam' />
+    <cvalue name='PYTHON_VERSION' value='2.7.9' />
+    <cvalue name='STAR_VERSION' value='2.5.3a' />
+    <cvalue name='SUBREAD_VERSION' value='1.5.1' />
+    <cvalue name='SAMBAMBA_VERSION' value='0.6.5' />
+    <cvalue name='SAMTOOLS_VERSION' value='1.6' />
+    <cvalue name='HTSLIB_VERSION' value='1.6' />
+    <cvalue name='RNASEQC_VERSION' value='1.1.8' />
+    <cvalue name='KALLISTO_VERSION' value='0.43.0' />
+    <cvalue name='QUALIMAP_VERSION' value='2.2.1' />
+    <cvalue name='ARRIBA_VERSION' value='0.8' />
+    <cvalue name='R_VERSION' value='3.0.0' />
+    <cvalue name='workflowEnvironmentScript' value='workflowEnvironment_tbiCluster' />
+    <cvalue name='RUN_STAR' value='true' />
+    <cvalue name='RUN_FEATURE_COUNTS' value='true' />
+    <cvalue name='RUN_FEATURE_COUNTS_DEXSEQ' value='true' />
+    <cvalue name='RUN_RNASEQC' value='true' />
+    <cvalue name='RUN_QUALIMAP' value='false' />
+    <cvalue name='RUN_KALLISTO' value='false' />
+    <cvalue name='RUN_KALLISTO_FR' value='false' />
+    <cvalue name='RUN_KALLISTO_RF' value='false' />
+    <cvalue name='RUN_ARRIBA' value='true' />
+    <cvalue name='RUN_QCJSON' value='true' />
+    <cvalue name='RUN_CLEANUP' value='true' />
+    <cvalue name='hg19BaseDirectory' value='/icgc/ngs_share/assemblies/hg19_GRCh37_1000genomes/' />
+    <cvalue name='hg19DatabaseDirectory' value='${hg19BaseDirectory}/databases' />
+    <cvalue name='hg19IndexDirectory' value='${hg19BaseDirectory}/indexes/' />
+    <cvalue name='mm10BaseDirectory' value='/icgc/ngs_share/assemblies/mm10/' />
+    <cvalue name='mm10DatabaseDirectory' value='${mm10BaseDirectory}/databases' />
+    <cvalue name='mm10IndexDirectory' value='${mm10BaseDirectory}/indexes/' />
+    <cvalue name='databaseDirectory' value='${hg19DatabaseDirectory}' />
+    <cvalue name='indexDirectory' value='${hg19IndexDirectory}' />
+    <cvalue name='GENOME_FA' value='/icgc/dkfzlsdf/project/ODCF/reference_genomes/bwa06_1KGRef_PhiX/hs37d5_PhiX.fa' />
+    <cvalue name='GENOME_GATK_INDEX' value='/icgc/dkfzlsdf/dmg/otp/production/processing/reference_genomes/bwa06_1KGRef_PhiX/indexes/gatk/hs37d5_PhiX.fa' />
+    <cvalue name='GENE_MODELS' value='/icgc/dkfzlsdf/dmg/otp/production/processing/reference_genomes/bwa06_1KGRef_PhiX/gencode/gencode19/gencode.v19.annotation_plain.gtf' />
+    <cvalue name='GENE_MODELS_EXCLUDE' value='/icgc/dkfzlsdf/dmg/otp/production/processing/reference_genomes/bwa06_1KGRef_PhiX/gencode/gencode19/gencode.v19.annotation_plain.chrXYMT.rRNA.tRNA.gtf' />
+    <cvalue name='GENE_MODELS_DEXSEQ' value='/icgc/dkfzlsdf/dmg/otp/production/processing/reference_genomes/bwa06_1KGRef_PhiX/gencode/gencode19/gencode.v19.annotation_plain.dexseq.gff' />
+    <cvalue name='GENE_MODELS_GC' value='/icgc/dkfzlsdf/dmg/otp/production/processing/reference_genomes/bwa06_1KGRef_PhiX/gencode/gencode19/gencode.v19.annotation_plain.transcripts.autosomal_transcriptTypeProteinCoding_nonPseudo.1KGRef.gc' />
+    <cvalue name='GENOME_STAR_INDEX_50' value='${indexDirectory}/STAR/STAR_2.5.2b_1KGRef_PhiX_Gencode19_50bp' />
+    <cvalue name='GENOME_STAR_INDEX_100' value='${indexDirectory}/STAR/STAR_2.5.2b_1KGRef_PhiX_Gencode19_100bp' />
+    <cvalue name='GENOME_STAR_INDEX_200' value='${indexDirectory}/STAR/STAR_2.5.2b_1KGRef_PhiX_Gencode19_200bp' />
+    <cvalue name='GENOME_KALLISTO_INDEX' value='/icgc/dkfzlsdf/dmg/otp/production/processing/reference_genomes/bwa06_1KGRef_PhiX/indexes/kallisto/kallisto-0.43.0_1KGRef_Gencode19_k31/kallisto-0.43.0_1KGRef_Gencode19_k31.noGenes.index' />
+    <cvalue name='ARRIBA_KNOWN_FUSIONS' value='/icgc/dkfzlsdf/dmg/otp/production/processing/reference_genomes/bwa06_1KGRef_PhiX/indexes/ariba_known_fusions/known_fusions_CancerGeneCensus_gencode19_2017-01-16.tsv.gz' />
+    <cvalue name='ARRIBA_BLACKLIST' value='/icgc/dkfzlsdf/dmg/otp/production/processing/reference_genomes/bwa06_1KGRef_PhiX/indexes/ariba_blacklist/blacklist_hs37d5_gencode19_2017-01-09.tsv.gz' />
+    <cvalue name='READ_COMMAND' value='${UNZIPTOOL} ${UNZIPTOOL_OPTIONS}' />
+    <cvalue name='ADAPTER_SEQ_TRUSEQ_LT_HT' value='AGATCGGAAGAGCACACGTCTGAACTCCAGTCA AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT' />
+    <cvalue name='ADAPTER_SEQ_TRUSEQ_DNAME' value='AGATCGGAAGAGCACACGTCTGAAC AGATCGGAAGAGCGTCGTGTAGGGA' />
+    <cvalue name='ADAPTER_SEQ_TRUSEQ_SRNA' value='TGGAATTCTCGGGTGCCAAGG' />
+    <cvalue name='ADAPTER_SEQ_TRUSEQ_RIBO' value='AGATCGGAAGAGCACACGTCT' />
+    <cvalue name='ADAPTER_SEQ_NEXTERA' value='CTGTCTCTTATACACATCT' />
+    <cvalue name='ADAPTER_SEQ_NEXTERA_MP' value='CTGTCTCTTATACACATCT AGATGTGTATAAGAGACAG' />
+    <cvalue name='ADAPTER_SEQ' value='AGATCGGAAGAG' />
+    <cvalue name='STAR_PARAMS_CLIP' value='--clip3pAdapterSeq ${ADAPTER_SEQ}' />
+    <cvalue name='GENOME_STAR_INDEX' value='/icgc/dkfzlsdf/dmg/otp/production/processing/reference_genomes/bwa06_1KGRef_PhiX/indexes/star_200/STAR_2.5.2b_1KGRef_PhiX_Gencode19_200bp' />
+    <cvalue name='STAR_PARAMS_BASIC' value='--sjdbOverhang 200 --runThreadN ${CORES} --outFileNamePrefix ${STAR_PREFIX}. --genomeDir ${GENOME_STAR_INDEX} --runRNGseed 1234 --outTmpDir ${SCRATCH}/${SAMPLE}_${pid}_STAR' />
+    <cvalue name='STAR_PARAMS_OUT' value='--outSAMtype BAM Unsorted SortedByCoordinate --limitBAMsortRAM 100000000000 --outBAMsortingThreadN=1 --outSAMstrandField intronMotif --outSAMunmapped Within KeepPairs --outFilterMultimapNmax 1 --outFilterMismatchNmax 5 --outFilterMismatchNoverLmax 0.3' />
+    <cvalue name='STAR_PARAMS_2PASS' value='--twopassMode Basic --twopass1readsN -1 --genomeLoad NoSharedMemory' />
+    <cvalue name='STAR_PARAMS_CHIMERIC' value='--chimSegmentMin 15 --chimScoreMin 1 --chimScoreJunctionNonGTAG 0 --chimJunctionOverhangMin 15  --chimSegmentReadGapMax 3 --alignSJstitchMismatchNmax 5 -1 5 5' />
+    <cvalue name='STAR_PARAMS_INTRONS' value='--alignIntronMax 1100000 --alignMatesGapMax 1100000 --alignSJDBoverhangMin 3 --alignIntronMin 20' />
+    <cvalue name='STAR_PARAMS_ADDITIONAL' value=' ' />
+    <cvalue name='STAR_PARAMS' value='${STAR_PARAMS_BASIC} ${STAR_PARAMS_OUT} ${STAR_PARAMS_2PASS} ${STAR_PARAMS_CHIMERIC} ${STAR_PARAMS_INTRONS} ${STAR_PARAMS_CLIP} ${STAR_PARAMS_ADDITIONAL}' />
+    <cvalue name='disableDoC_GATK' value='true' />
+    <cvalue name='JSON_PREFIX' value='""' />
+    <cvalue name='runFingerprinting' value='true' />
+    <cvalue name='fingerprintingSitesFile_hs37' value='${databaseDirectory}/fingerprinting/hovestadt_v1.1/snp138Common.n1000.vh20140318.bed' />
+    <cvalue name='fingerprintingSitesFile' value='/icgc/dkfzlsdf/project/ODCF/reference_genomes/bwa06_1KGRef_PhiX/fingerPrinting/snp138Common.n1000.vh20140318.bed' />
+    <cvalue name='outputFileGroup' value='false' />
+    <cvalue name='outputUMask' value='007' />
+    <cvalue name='outputAccessRights' value='u+rw,g+rw,o-rwx' />
+    <cvalue name='outputAccessRightsForDirectories' value='u+rwx,g+rwx,o-rwx' />
+    <cvalue name='outputAllowAccessRightsModification' value='false' />
+    <cvalue name='jobnamePrefix' value='defaultRoddyJobname' />
+    <cvalue name='inputBaseDirectory' value='/icgc/dkfzlsdf/project/hipo/hipo_021/sequencing/rna_sequencing/view-by-pid' />
+    <cvalue name='inputAnalysisBaseDirectory' value='${inputBaseDirectory}/${dataSet}' />
+    <cvalue name='outputBaseDirectory' value='/icgc/dkfzlsdf/project/hipo/hipo_021/sequencing/rna_sequencing/view-by-pid/H021-4H362B/metastasis/paired/merged-alignment/.merging_0' />
+    <cvalue name='outputAnalysisBaseDirectory' value='${outputBaseDirectory}' />
+    <cvalue name='DEBUG' value='TRUE' />
+    <cvalue name='UNZIPTOOL' value='gunzip' />
+    <cvalue name='UNZIPTOOL_OPTIONS' value='-c' />
+    <cvalue name='ZIPTOOL' value='gzip' />
+    <cvalue name='ZIPTOOL_OPTIONS' value='-c' />
+    <cvalue name='useAcceleratedHardware' value='true' />
+    <cvalue name='outputExecutionDirectory' value='${outputAnalysisBaseDirectory}/exec_${executionTimeString}' />
+    <cvalue name='mergedBamSuffix_markDuplicates' value='merged.bam.dupmarked.bam' />
+    <cvalue name='mergedBamSuffix_removeDuplicates' value='merged.bam.rmdup.bam' />
+    <cvalue name='pairedBamSuffix' value='paired.bam.sorted.bam' />
+    <cvalue name='fastx_qcOutputDirectory' value='fastx_qc' />
+    <cvalue name='coverageOutputDirectory' value='coverage' />
+    <cvalue name='flagstatsOutputDirectory' value='flagstats' />
+    <cvalue name='structuralVariationOutputDirectory' value='structural_variation' />
+    <cvalue name='insertSizesOutputDirectory' value='insertsize_distribution' />
+    <cvalue name='metricsOutputDirectory' value='metrics' />
+    <cvalue name='mpileupOutputDirectory' value='mpileup' />
+    <cvalue name='mpileupPlatypusOutputDirectory' value='platypus_indel' />
+    <cvalue name='assembliesBaseDirectory' value='${sharedFilesBaseDirectory}/assemblies' />
+    <cvalue name='assembliesHG191000GenomesDirectory' value='${assembliesBaseDirectory}/hg19_GRCh37_1000genomes' />
+    <cvalue name='bwaIndexBaseDirectory_human' value='${assembliesHG191000GenomesDirectory}/indexes/bwa' />
+    <cvalue name='bwaIndexBaseDirectory_methylCtools_human' value='${assembliesHG191000GenomesDirectory}/indexes/methylCtools' />
+    <cvalue name='referenceGenomeBaseDirectory_human' value='${assembliesHG191000GenomesDirectory}/sequence' />
+    <cvalue name='chromosomeSizesBaseDirectory_human' value='${assembliesHG191000GenomesDirectory}/stats' />
+    <cvalue name='targetRegionsBaseDirectory_human' value='${assembliesHG191000GenomesDirectory}/targetRegions' />
+    <cvalue name='hg19DatabasesDirectory' value='${assembliesHG191000GenomesDirectory}/databases' />
+    <cvalue name='hg19DatabaseUCSCDirectory' value='${hg19DatabasesDirectory}/UCSC' />
+    <cvalue name='hg19DatabaseDBSNPDirectory' value='${hg19DatabasesDirectory}/dbSNP' />
+    <cvalue name='hg19Database1000GenomesDirectory' value='${hg19DatabasesDirectory}/1000genomes' />
+    <cvalue name='hg19DatabaseIMPUTEDirectory' value='${hg19Database1000GenomesDirectory}/IMPUTE' />
+    <cvalue name='hg19DatabaseENCODEDirectory' value='${hg19DatabasesDirectory}/ENCODE' />
+    <cvalue name='bwaIndexBaseDirectory_mm10' value='${assembliesBaseDirectory}/mm10/indexes/bwa' />
+    <cvalue name='bwaIndexBaseDirectory_methylCtools_mm10' value='${assembliesBaseDirectory}/mm10/indexes/methylCtools' />
+    <cvalue name='chromosomeSizesBaseDirectory_mm10' value='${assembliesBaseDirectory}/mm10/stats' />
+    <cvalue name='targetRegionsBaseDirectory_mm10' value='${assembliesBaseDirectory}/mm10/targetRegions' />
+    <cvalue name='meth_calls_converter_moabs' value='' />
+    <cvalue name='indexPrefix_bwa05_1KGRef' value='${bwaIndexBaseDirectory_human}/bwa05_1KGRef/hs37d5.fa' />
+    <cvalue name='indexPrefix_bwa05_hg19_chr' value='${bwaIndexBaseDirectory_human}/bwa05_hg19_chr/hg19bwaidx' />
+    <cvalue name='indexPrefix_bwa06_1KGRef' value='${bwaIndexBaseDirectory_human}/bwa06_1KGRef/hs37d5.fa' />
+    <cvalue name='indexPrefix_bwa06_hg19_chr' value='${bwaIndexBaseDirectory_human}/bwa06_hg19_chr/hg19_1-22_X_Y_M.fasta' />
+    <cvalue name='indexPrefix_bwa06_mm10_GRC' value='${bwaIndexBaseDirectory_mm10}/bwa06/bwa06_GRCm38mm10/GRCm38mm10.fa' />
+    <cvalue name='indexPrefix_bwa06_mm10' value='${bwaIndexBaseDirectory_mm10}/bwa06/bwa06_mm10_UCSC/mm10_1-19_X_Y_M.fa' />
+    <cvalue name='indexPrefix_bwa06_methylCtools_mm10_GRC' value='${bwaIndexBaseDirectory_methylCtools_mm10}/methylCtools_GRCm38mm10/GRCm38mm10_PhiX_Lambda.conv.fa' />
+    <cvalue name='indexPrefix_bwa06_methylCtools_mm10_UCSC' value='${bwaIndexBaseDirectory_methylCtools_mm10}/methylCtools_mm10_UCSC/mm10_PhiX_Lambda.conv.fa' />
+    <cvalue name='indexPrefix_bwa06_methylCtools_1KGRef' value='${bwaIndexBaseDirectory_methylCtools_human}/methylCtools_1KGRef/hs37d5_PhiX_Lambda.conv.fa' />
+    <cvalue name='ch_pos_index_methylCtools_1KGRef' value='${bwaIndexBaseDirectory_methylCtools_human}/methylCtools_1KGRef/hs37d5_PhiX_Lambda.CG_CH.pos.gz' />
+    <cvalue name='ch_pos_index_methylCtools_mm10GRC' value='${bwaIndexBaseDirectory_methylCtools_mm10}/methylCtools_GRCm38mm10/GRCm38mm10_PhiX_Lambda.pos.gz' />
+    <cvalue name='ch_pos_index_methylCtools_mm10_UCSC' value='${bwaIndexBaseDirectory_methylCtools_mm10}/methylCtools_mm10_UCSC/mm10_PhiX_Lambda.pos.gz' />
+    <cvalue name='referenceGenome_1KGRef' value='${referenceGenomeBaseDirectory_human}/1KGRef/hs37d5.fa' />
+    <cvalue name='referenceGenome_hg19_chr' value='${referenceGenomeBaseDirectory_human}/hg19_chr/hg19_1-22_X_Y_M.fa' />
+    <cvalue name='chromosomeSizesFile_hg19' value='${chromosomeSizesBaseDirectory_human}/hg19_1-22_X_Y_M.fa.chrLenOnlyACGT.tab' />
+    <cvalue name='chromosomeSizesFile_hs37' value='${chromosomeSizesBaseDirectory_human}/hs37d5.fa.chrLenOnlyACGT_realChromosomes.tab' />
+    <cvalue name='chromosomeSizesFile_mm10_GRC' value='${chromosomeSizesBaseDirectory_mm10}/GRCm38mm10.fa.chrLenOnlyACGT_realChromosomes.tab' />
+    <cvalue name='chromosomeSizesFile_mm10' value='${chromosomeSizesBaseDirectory_mm10}/mm10_1-19_X_Y_M.fa.chrLenOnlyACGT_realChromosomes.tab' />
+    <cvalue name='chromosomeSizesFile_hs37_bisulfite' value='${chromosomeSizesBaseDirectory_human}/hs37d5_PhiX_Lambda.fa.chrLenOnlyACGT.tab' />
+    <cvalue name='chromosomeSizesFile_mm10_GRC_bisulfite' value='${chromosomeSizesBaseDirectory_mm10}/GRCm38mm10_PhiX_Lambda.fa.chrLenOnlyACGT.tab' />
+    <cvalue name='chromosomeSizesFile_mm10_UCSC_bisulfite' value='${chromosomeSizesBaseDirectory_mm10}/mm10_PhiX_Lambda.fa.chrLenOnlyACGT.tab' />
+    <cvalue name='chromosomeLengthFile_hg19' value='${chromosomeSizesBaseDirectory_human}/hg19_chrTotalLength.tsv' />
+    <cvalue name='targetRegions_Agilent4withoutUTRs_chr' value='${targetRegionsBaseDirectory_human}/Agilent4withoutUTRs_chr.bed.gz' />
+    <cvalue name='targetRegions_Agilent4withoutUTRs_plain' value='${targetRegionsBaseDirectory_human}/Agilent4withoutUTRs_plain.bed.gz' />
+    <cvalue name='targetRegions_Agilent4withUTRs_plain' value='${targetRegionsBaseDirectory_human}/Agilent4withUTRs_plain.bed.gz' />
+    <cvalue name='targetRegions_Agilent5withoutUTRs_chr' value='${targetRegionsBaseDirectory_human}/Agilent5withoutUTRs_chr.bed.gz' />
+    <cvalue name='targetRegions_Agilent5withoutUTRs_plain' value='${targetRegionsBaseDirectory_human}/Agilent5withoutUTRs_plain.bed.gz' />
+    <cvalue name='targetRegions_Agilent5withUTRs_chr' value='${targetRegionsBaseDirectory_human}/Agilent5withUTRs_chr.bed.gz' />
+    <cvalue name='targetRegions_Agilent5withUTRs_plain' value='${targetRegionsBaseDirectory_human}/Agilent5withUTRs_plain.bed.gz' />
+    <cvalue name='dbSNP_FILE' value='${hg19DatabasesDirectory}/dbSNP/dbSNP_135/00-All.SNV.vcf.gz' />
+    <cvalue name='SNP_REFERENCE' value='${assembliesHG191000GenomesDirectory}/sequence/hg19_chr/hg19_1-22_X_Y_M.fa' />
+    <cvalue name='SNP_REFERENCE_ANNOTATIONS' value='${assembliesHG191000GenomesDirectory}/Affymetrics/Affy5/chr/#CHROM#_AFFY.vcf' />
+    <cvalue name='alignmentThreads' value='12' />
+    <cvalue name='JOB_PROFILER_BINARY' value='strace.sh' />
+    <cvalue name='INDEX_PREFIX' value='/icgc/dkfzlsdf/project/ODCF/reference_genomes/bwa06_1KGRef_PhiX/hs37d5_PhiX.fa' />
+    <cvalue name='BWA_ALIGNMENT_OPTIONS' value='"-q 20"' />
+    <cvalue name='BWA_SAMPESORT_OPTIONS' value='"-a 1000"' />
+    <cvalue name='SAMPESORT_MEMSIZE' value='2000000000' />
+    <cvalue name='BWA_MEM_OPTIONS' value='" -T 0 "' />
+    <cvalue name='BWA_MEM_CONVEY_ADDITIONAL_OPTIONS' value='"--bb_cny_timeout=5000000000 --bb_profile=1 -t 8"' />
+    <cvalue name='mergeAndRemoveDuplicates_optionMarkDuplicates' value='" REMOVE_DUPLICATES=FALSE"' />
+    <cvalue name='mergeAndRemoveDuplicates_removeDuplicates' value='" REMOVE_DUPLICATES=TRUE"' />
+    <cvalue name='mergeAndRemoveDuplicates_argumentList' value='${mergeAndRemoveDuplicates_optionMarkDuplicates}' />
+    <cvalue name='LIB_ADD' value='addToOldLib' />
+    <cvalue name='SNP_MINCOVERAGE' value='16' />
+    <cvalue name='SNP_MAXCOVERAGE' value='300' />
+    <cvalue name='CHROM_SIZES_FILE' value='${chromosomeSizesFile_hg19}' />
+    <cvalue name='CLIP_INDEX' value='${DIR_EXECUTION}/analysisTools/qcPipelineTools/trimmomatic/adapters/TruSeq3-PE.fa' />
+    <cvalue name='ADAPTOR_TRIMMING_OPTIONS_0' value='"PE -threads 12 -phred33"' />
+    <cvalue name='ADAPTOR_TRIMMING_OPTIONS_1' value='"ILLUMINACLIP:${CLIP_INDEX}:2:30:10:8:true SLIDINGWINDOW:4:15 MINLEN:36"' />
+    <cvalue name='debugOptionsUseUndefinedVariableBreak' value='false' />
+    <cvalue name='debugOptionsUseExitOnError' value='false' />
+    <cvalue name='useBioBamBamSort' value='false' />
+    <cvalue name='disableAutoBAMHeaderAnalysis' value='true' />
+    <cvalue name='fastq_list' value='/icgc/dkfzlsdf/project/hipo/hipo_021/sequencing/rna_sequencing/view-by-pid/H021-4H362B/metastasis/paired/run210224_A00382_0244_AH2YYLDRXY/sequence/AS-585522-LR-55689_R1.fastq.gz;/icgc/dkfzlsdf/project/hipo/hipo_021/sequencing/rna_sequencing/view-by-pid/H021-4H362B/metastasis/paired/run210224_A00382_0244_AH2YYLDRXY/sequence/AS-585522-LR-55689_R2.fastq.gz;/icgc/dkfzlsdf/project/hipo/hipo_021/sequencing/rna_sequencing/view-by-pid/H021-4H362B/metastasis/paired/run210224_A00382_0244_AH2YYLDRXY/sequence/AS-585522-LR-55688_R1.fastq.gz;/icgc/dkfzlsdf/project/hipo/hipo_021/sequencing/rna_sequencing/view-by-pid/H021-4H362B/metastasis/paired/run210224_A00382_0244_AH2YYLDRXY/sequence/AS-585522-LR-55688_R2.fastq.gz' />
+    <cvalue name='sharedFilesBaseDirectory' value='/icgc/ngs_share' />
+    <cvalue name='RODDY_JOBID' value='${LSB_JOBID}' />
+    <cvalue name='RODDY_JOBNAME' value='${LSB_JOBNAME}' />
+    <cvalue name='RODDY_QUEUE' value='${LSB_QUEUE}' />
+    <cvalue name='scratchBaseDirectory' value='/local/$USER' />
+    <cvalue name='RODDY_SCRATCH' value='${scratchBaseDirectory}/${RODDY_JOBID}' />
+    <cvalue name='USERNAME' value='icgcdata' />
+    <cvalue name='USERGROUP' value='B080' />
+    <cvalue name='USERHOME' value='/home/icgcdata' />
+    <cvalue name='projectName' value='config' />
+    <cvalue name='processOptionsSetUserGroup' value='false' />
+    <cvalue name='processOptionsSetUserMask' value='false' />
+    <cvalue name='processOptionsQueryID' value='false' />
+    <cvalue name='StrictMode' value='true' />
+    <cvalue name='RollbackOnWorkflowError' value='true' />
+    <cvalue name='ForbidSubmissionOnRunning' value='true' />
+    <cvalue name='BreakSubmissionOnError' value='false' />
+    <cvalue name='QuoteSomeScalarConfigValues' value='true' />
+    <cvalue name='UseDeclareFunctionalityForBashConverter' value='true' />
+    <cvalue name='AutoQuoteBashArrayVariables' value='true' />
+    <cvalue name='FailOnAutoFilenames' value='true' />
+    <cvalue name='FailOnErroneousDryRuns' value='false' />
+    <cvalue name='StrictParameterSelectionTagEquality' value='false' />
+    <cvalue name='DIR_LOCKFILES' value='/icgc/dkfzlsdf/project/hipo/hipo_021/sequencing/rna_sequencing/view-by-pid/H021-4H362B/metastasis/paired/merged-alignment/.merging_0/roddyExecutionStore/exec_210225_135740432_icgcdata_RNA/temp/lockfiles' />
+    <cvalue name='DIR_TEMP' value='/icgc/dkfzlsdf/project/hipo/hipo_021/sequencing/rna_sequencing/view-by-pid/H021-4H362B/metastasis/paired/merged-alignment/.merging_0/roddyExecutionStore/exec_210225_135740432_icgcdata_RNA/temp' />
+    <cvalue name='DIR_EXECUTION' value='/icgc/dkfzlsdf/project/hipo/hipo_021/sequencing/rna_sequencing/view-by-pid/H021-4H362B/metastasis/paired/merged-alignment/.merging_0/roddyExecutionStore/exec_210225_135740432_icgcdata_RNA' />
+    <cvalue name='DIR_EXECUTION_COMMON' value='/icgc/dkfzlsdf/project/hipo/hipo_021/sequencing/rna_sequencing/view-by-pid/H021-4H362B/metastasis/paired/merged-alignment/.merging_0/.roddyExecutionStore' />
+    <cvalue name='DIR_RODDY' value='/tbi/software/x86_64/otp/roddy/roddy/3.5.9' />
+    <cvalue name='DIR_BUNDLED_FILES' value='/tbi/software/x86_64/otp/roddy/roddy/3.5.9/bundledFiles' />
+    <cvalue name='DIR_ANALYSIS_TOOLS' value='/icgc/dkfzlsdf/project/hipo/hipo_021/sequencing/rna_sequencing/view-by-pid/H021-4H362B/metastasis/paired/merged-alignment/.merging_0/roddyExecutionStore/exec_210225_135740432_icgcdata_RNA/analysisTools' />
+    <cvalue name='jobStateLogFile' value='/icgc/dkfzlsdf/project/hipo/hipo_021/sequencing/rna_sequencing/view-by-pid/H021-4H362B/metastasis/paired/merged-alignment/.merging_0/roddyExecutionStore/exec_210225_135740432_icgcdata_RNA/jobStateLogfile.txt' />
+    <cvalue name='BASEPATH_RNASEQWORKFLOW' value='/icgc/dkfzlsdf/project/hipo/hipo_021/sequencing/rna_sequencing/view-by-pid/H021-4H362B/metastasis/paired/merged-alignment/.merging_0/roddyExecutionStore/exec_210225_135740432_icgcdata_RNA/analysisTools/rnaseqworkflow' />
+    <cvalue name='BASEPATH_EXOME_PIPELINE' value='/icgc/dkfzlsdf/project/hipo/hipo_021/sequencing/rna_sequencing/view-by-pid/H021-4H362B/metastasis/paired/merged-alignment/.merging_0/roddyExecutionStore/exec_210225_135740432_icgcdata_RNA/analysisTools/exomePipeline' />
+    <cvalue name='BASEPATH_QC_PIPELINE' value='/icgc/dkfzlsdf/project/hipo/hipo_021/sequencing/rna_sequencing/view-by-pid/H021-4H362B/metastasis/paired/merged-alignment/.merging_0/roddyExecutionStore/exec_210225_135740432_icgcdata_RNA/analysisTools/qcPipeline' />
+    <cvalue name='BASEPATH_BISULFITE_WORKFLOW' value='/icgc/dkfzlsdf/project/hipo/hipo_021/sequencing/rna_sequencing/view-by-pid/H021-4H362B/metastasis/paired/merged-alignment/.merging_0/roddyExecutionStore/exec_210225_135740432_icgcdata_RNA/analysisTools/bisulfiteWorkflow' />
+    <cvalue name='BASEPATH_QC_PIPELINE_TOOLS' value='/icgc/dkfzlsdf/project/hipo/hipo_021/sequencing/rna_sequencing/view-by-pid/H021-4H362B/metastasis/paired/merged-alignment/.merging_0/roddyExecutionStore/exec_210225_135740432_icgcdata_RNA/analysisTools/qcPipelineTools' />
+    <cvalue name='BASEPATH_DEVEL' value='/icgc/dkfzlsdf/project/hipo/hipo_021/sequencing/rna_sequencing/view-by-pid/H021-4H362B/metastasis/paired/merged-alignment/.merging_0/roddyExecutionStore/exec_210225_135740432_icgcdata_RNA/analysisTools/devel' />
+    <cvalue name='BASEPATH_TOOLS' value='/icgc/dkfzlsdf/project/hipo/hipo_021/sequencing/rna_sequencing/view-by-pid/H021-4H362B/metastasis/paired/merged-alignment/.merging_0/roddyExecutionStore/exec_210225_135740432_icgcdata_RNA/analysisTools/tools' />
+    <cvalue name='BASEPATH_RODDY_TOOLS' value='/icgc/dkfzlsdf/project/hipo/hipo_021/sequencing/rna_sequencing/view-by-pid/H021-4H362B/metastasis/paired/merged-alignment/.merging_0/roddyExecutionStore/exec_210225_135740432_icgcdata_RNA/analysisTools/roddyTools' />
+    <cvalue name='BASEPATH_RODDY_NATIVE_TOOLS' value='/icgc/dkfzlsdf/project/hipo/hipo_021/sequencing/rna_sequencing/view-by-pid/H021-4H362B/metastasis/paired/merged-alignment/.merging_0/roddyExecutionStore/exec_210225_135740432_icgcdata_RNA/analysisTools/roddyNativeTools' />
+  </configurationvalues>
+  <projects />
+</configuration>

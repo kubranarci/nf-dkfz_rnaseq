@@ -29,10 +29,62 @@
                     "description": "The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.",
                     "fa_icon": "fas fa-folder-open"
                 },
+                "skip_tools": {
+                    "type": "string",
+                    "description": "Skip tools",
+                    "errorMessage": "A wrong input has been detected. Should be a comma-separated list of one or more of the following options: star, kallisto, rnaseqc, qualimap, feature_counts, dexseq, arriba, qcjson, fingerprinting",
+                    "pattern": "^((star|kallisto|rnaseqc|qualimap|feature_counts|dexseq|arriba|qcjson|fingerprinting)?,?)*(?<!,)$",
+                    "fa_icon": "fas fa-folder-open"
+                },
                 "multiqc_title": {
                     "type": "string",
                     "description": "MultiQC report title. Printed as page header, used for filename if not otherwise specified.",
                     "fa_icon": "fas fa-file-signature"
+                },
+                "seq_center": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Sequencing center information to be added to read group of BAM files.",
+                    "fa_icon": "fas fa-synagogue"
+                },
+                "seq_platform": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Sequencing platform information to be added to read group of BAM files.",
+                    "fa_icon": "fas fa-synagogue"
+                },
+                "sjdbOverhang": {
+                    "type": "integer",
+                    "minLength": 1,
+                    "description": "STAR: length of the donor/acceptor sequence on each side of the junctions, ideally = (mate_length - 1) ",
+                    "fa_icon": "fas fa-synagogue"
+                },
+                "clip3pAdapterSeq_R1 ": {
+                    "type": "string",
+                    "description": "Adaptor sequence to be trimmed from read 1 (R1). Depends on the library preparation kit used.",
+                    "fa_icon": "fas fa-synagogue"
+                },
+                "clip3pAdapterMMp_R1": {
+                    "type": "string",
+                    "description": "Maximum mismatch proportion for 3' adapter trimming for read 1",
+                    "fa_icon": "fas fa-percentage"
+                },
+                "clip3pAdapterSeq_R2 ": {
+                    "type": "string",
+                    "description": "Adaptor sequence to be trimmed from read 2 (R2). Depends on the library preparation kit used.",
+                    "fa_icon": "fas fa-synagogue"
+                }, 
+                "clip3pAdapterMMp_R2": {
+                    "type": "string",
+                    "description": "Maximum mismatch proportion for 3' adapter trimming for read 2.",
+                    "fa_icon": "fas fa-percentage"
+                },
+                "generate_star_index": {
+                    "type": "boolean",
+                    "description": "Generate STAR index from the provided FASTA and GTF files.",
+                    "fa_icon": "fas fa-dna",
+                    "default": false,
+                    "help_text": "If set to true, the pipeline will generate a STAR index using the provided FASTA and GTF files. Make sure to provide valid paths to these files using the `--fasta` and `--gtf` parameters."
                 }
             }
         },
@@ -56,6 +108,32 @@
                     "pattern": "^\\S+\\.fn?a(sta)?(\\.gz)?$",
                     "description": "Path to FASTA genome file.",
                     "help_text": "This parameter is *mandatory* if `--genome` is not specified. If you don't have a BWA index available this will be generated for you automatically. Combine with `--save_reference` to save BWA index for future runs.",
+                    "fa_icon": "far fa-file-code"
+                },
+                "gtf": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.gtf(\\.gz)?$",
+                    "description": "Path to GTF annotation file.",
+                    "help_text": "This parameter is *mandatory* if `--genome` is not specified. The GTF file is used for read counting and other gene-based analyses.",
+                    "fa_icon": "far fa-file-code"
+                },
+                "star": {
+                    "type": "string",
+                    "format": "path",
+                    "exists": true,
+                    "fa_icon": "fas fa-bezier-curve",
+                    "description": "Path to directory or tar.gz archive for pre-built STAR index."
+                },
+                "fingerprinting_sites": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.bed(\\.gz)?$",
+                    "description": "Path to BED file containing genomic coordinates of fingerprinting sites.",
                     "fa_icon": "far fa-file-code"
                 },
                 "igenomes_ignore": {

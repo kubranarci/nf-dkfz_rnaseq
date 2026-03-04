@@ -3,12 +3,14 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { FASTQC                 } from '../modules/nf-core/fastqc/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_dkfz_rnaseq_pipeline'
+include { STAR                   } from '../subworkflows/local/star/main'
+include { FINGERPRINTING         } from '../modules/local/fingerprinting/main'
+
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -22,16 +24,50 @@ workflow DKFZ_RNASEQ {
     ch_samplesheet // channel: samplesheet read in from --input
     main:
 
+    // create reference channels
+    fasta_ch = params.fasta ? channel.fromPath(params.fasta, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
+    fai_ch   = params.fai   ? channel.fromPath(params.fai, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
+    star_ch  = params.star  ? channel.fromPath(params.star, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
+    gtf_ch   = params.gtf   ? channel.fromPath(params.gtf, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
+    fingerprinting_sites_ch = params.fingerprinting_sites ? channel.fromPath(params.fingerprinting_sites, checkIfExists: true).collect() : channel.empty()
+
     ch_versions = channel.empty()
     ch_multiqc_files = channel.empty()
-    //
-    // MODULE: Run FastQC
-    //
-    FASTQC (
-        ch_samplesheet
-    )
-    ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]})
-    ch_versions = ch_versions.mix(FASTQC.out.versions.first())
+
+    // add feature: skip_alignmnet
+    // 
+    if (params.skip_tools.contains("star")) {
+        log.warn "Skipping STAR alignment as requested with --skip_tools. Downstream steps that depend on STAR output will likely fail, so use with caution."
+    } else {
+
+        STAR (
+            ch_samplesheet,
+            star_ch,
+            fasta_ch,
+            gtf_ch
+        )
+        ch_multiqc_files = ch_multiqc_files.mix(STAR.out.multiqc_files.map{ meta, files -> files })
+        ch_versions = ch_versions.mix(STAR.out.versions)
+
+        if (params.skip_tools.contains("fingerprinting")) {
+            log.warn "Skipping fingerprinting as requested with --skip_tools. Downstream steps that depend on Kallisto output will likely fail, so use with caution."
+        }else {
+            FINGERPRINTING(
+                STAR.out.ch_star_sorted_mkdup_bam,
+                fingerprinting_sites_ch
+            )
+            ch_versions = ch_versions.mix(FINGERPRINTING.out.versions)
+        }
+
+        if (params.skip_tools.contains("rnaseqc")){
+            log.warn "Skipping RNASeQC as requested with --skip_tools. Downstream steps that depend on RNASeQC output will likely fail, so use with caution."
+        }else{
+            //RNASEQC()
+        }
+    }
+
+
+
 
     //
     // Collate and save software versions

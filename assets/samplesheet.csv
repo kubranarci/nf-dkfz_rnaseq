@@ -1,3 +1,9 @@
-sample,fastq_1,fastq_2
-SAMPLE_PAIRED_END,/path/to/fastq/files/AEG588A1_S1_L002_R1_001.fastq.gz,/path/to/fastq/files/AEG588A1_S1_L002_R2_001.fastq.gz
-SAMPLE_SINGLE_END,/path/to/fastq/files/AEG588A4_S4_L003_R1_001.fastq.gz,
+sample,lane,fastq_1,fastq_2,status,replica,library,platform_unit
+test_paired,L1,tests/resources/testdata_pairedEnd/TEST_PID/control/paired/run150319_D00133_0107_BC5YE7ACXX/sequence/D2826_GATCAGA_L002_R1_001.fastq.gz,tests/resources/testdata_pairedEnd/TEST_PID/control/paired/run150319_D00133_0107_BC5YE7ACXX/sequence/D2826_GATCAGA_L002_R2_001.fastq.gz,control,1,D00133_0107_BC5YE7ACXX,BC5YE7ACXX
+test_paired,L1,tests/resources/testdata_pairedEnd/TEST_PID/control/paired/run150326_D00695_0025_BC6B2MACXX/sequence/D2826_GATCAGA_L002_R1_001.fastq.gz,tests/resources/testdata_pairedEnd/TEST_PID/control/paired/run150326_D00695_0025_BC6B2MACXX/sequence/D2826_GATCAGA_L002_R2_001.fastq.gz,control,2,D00695_0025_BC6B2MACXX,BC6B2MACXX
+test_paired,L1,tests/resources/testdata_pairedEnd/TEST_PID/tumor0/paired/run160319_D00133_0107_BC5YE7ACXX/sequence/D2826_GATCAGA_L002_R1_001.fastq.gz,tests/resources/testdata_pairedEnd/TEST_PID/tumor0/paired/run160319_D00133_0107_BC5YE7ACXX/sequence/D2826_GATCAGA_L002_R2_001.fastq.gz,tumor,1,D00133_0107_BC5YE7ACXX,BC5YE7ACXX
+test_paired,L1,tests/resources/testdata_pairedEnd/TEST_PID/tumor0/paired/run160326_D00695_0025_BC6B2MACXX/sequence/D2826_GATCAGA_L002_R1_001.fastq.gz,tests/resources/testdata_pairedEnd/TEST_PID/tumor0/paired/run160326_D00695_0025_BC6B2MACXX/sequence/D2826_GATCAGA_L002_R2_001.fastq.gz,tumor,2,D00695_0025_BC6B2MACXX,BC6B2MACXX
+test_single,L1,tests/resources/testdata_singleEnd/TEST_PID/control/paired/run150319_D00133_0107_BC5YE7ACXX/sequence/D2826_GATCAGA_L002_R1_001.fastq.gz,,control,1,D00133_0107_BC5YE7ACXX,BC5YE7ACXX
+test_single,L1,tests/resources/testdata_singleEnd/TEST_PID/control/paired/run150326_D00695_0025_BC6B2MACXX/sequence/D2826_GATCAGA_L002_R1_001.fastq.gz,,control,2,D00695_0025_BC6B2MACXX,BC6B2MACXX
+test_single,L1,tests/resources/testdata_singleEnd/TEST_PID/tumor0/paired/run160319_D00133_0107_BC5YE7ACXX/sequence/D2826_GATCAGA_L002_R1_001.fastq.gz,,tumor,1,D00133_0107_BC5YE7ACXX,BC5YE7ACXX
+test_single,L1,tests/resources/testdata_singleEnd/TEST_PID/tumor0/paired/run160326_D00695_0025_BC6B2MACXX/sequence/D2826_GATCAGA_L002_R1_001.fastq.gz,,tumor,2,D00695_0025_BC6B2MACXX,BC6B2MACXX

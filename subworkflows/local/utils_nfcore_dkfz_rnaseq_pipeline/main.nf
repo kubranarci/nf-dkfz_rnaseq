@@ -81,26 +81,30 @@ workflow PIPELINE_INITIALISATION {
     //
     // Create channel from input file provided through params.input
     //
-
     channel
         .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
-        .map {
-            meta, fastq_1, fastq_2 ->
-                if (!fastq_2) {
-                    return [ meta.id, meta + [ single_end:true ], [ fastq_1 ] ]
-                } else {
-                    return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
+        .map { meta, fastq_1, fastq_2 ->
+            // Use sample, status, lane, and replica as the grouping key
+            // We exclude the platform_unit here if multiple platform units belong to the same lane
+            def group_key = "${meta.sample}_${meta.status}_lane${meta.lane}_rep${meta.replica}" 
+            
+            def new_meta = meta + [id: group_key]
+            if (!fastq_2) {
+                return [ group_key, new_meta + [ single_end:true ], [ fastq_1 ] ]
+            } else {
+                return [ group_key, new_meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
+            }
+        }
+        // Group by the group_key (index 0)
+        .groupTuple(by: [0]) 
+                .map { group_key, metas, fastqs ->
+                    // Reconstruct the structure the validator expects: [id, [metas], [fastqs]]
+                    return [ group_key, metas, fastqs.flatten() ]
                 }
-        }
-        .groupTuple()
-        .map { samplesheet ->
-            validateInputSamplesheet(samplesheet)
-        }
-        .map {
-            meta, fastqs ->
-                return [ meta, fastqs.flatten() ]
-        }
-        .set { ch_samplesheet }
+                .map { input ->
+                    validateInputSamplesheet(input)
+                }
+                .set { ch_samplesheet }
 
     emit:
     samplesheet = ch_samplesheet

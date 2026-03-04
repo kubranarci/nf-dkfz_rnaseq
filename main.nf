@@ -12,11 +12,17 @@
     IMPORT FUNCTIONS / MODULES / SUBWORKFLOWS / WORKFLOWS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
+include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_dkfz_rnaseq_pipeline'
+//   This is an example of how to use getGenomeAttribute() to fetch parameters
+//   from igenomes.config using `--genome`
+params.fasta = getGenomeAttribute('fasta')
+params.fai   = getGenomeAttribute('fai')
+params.star  = getGenomeAttribute('star')
+params.gtf   = getGenomeAttribute('gtf')
 
 include { DKFZ_RNASEQ  } from './workflows/dkfz_rnaseq'
 include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_dkfz_rnaseq_pipeline'
 include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_dkfz_rnaseq_pipeline'
-include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_dkfz_rnaseq_pipeline'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -24,10 +30,7 @@ include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_dkfz
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-// TODO nf-core: Remove this line if you don't need a FASTA file
-//   This is an example of how to use getGenomeAttribute() to fetch parameters
-//   from igenomes.config using `--genome`
-params.fasta = getGenomeAttribute('fasta')
+
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -11,7 +11,7 @@
                 "type": "string",
                 "pattern": "^\\S+$",
                 "errorMessage": "Sample name must be provided and cannot contain spaces",
-                "meta": ["id"]
+                "meta": ["sample"]
             },
             "fastq_1": {
                 "type": "string",
@@ -26,8 +26,38 @@
                 "exists": true,
                 "pattern": "^([\\S\\s]*\\/)?[^\\s\\/]+\\.f(ast)?q\\.gz$",
                 "errorMessage": "FastQ file for reads 2 cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+            },
+            "status": {
+                "type": "string",
+                "pattern": "^\\S+$",
+                "errorMessage": "Status must be provided and cannot contain spaces",
+                "meta": ["status"]
+            },
+            "lane": {
+                "type": "string",
+                "pattern": "^\\S+$",
+                "errorMessage": "Library lane",
+                "meta": ["lane"]
+            },
+            "replica": {
+                "type": "integer",
+                "errorMessage": "Replica must be provided and cannot contain spaces",
+                "meta": ["replica"]
+            },
+            "library": {
+                "type": "string",
+                "pattern": "^\\S+$",
+                "errorMessage": "Identifies the physical tube of prepped RNA/DNA. If you sequence the same physical library across multiple lanes, they share this LB tag. Duplicate marking tools require this to accurately find PCR duplicates. Must be provided and cannot contain spaces",
+                "meta": ["library"]
+            },
+            "platform_unit": {
+                "type": "string",
+                "pattern": "^\\S+$",
+                "errorMessage": "Usually the flowcell barcode and lane. This is strictly used by analysts to track down hardware-specific batch effects or sequencing lane failures. Must be provided and cannot contain spaces",
+                "meta": ["platform_unit"]
             }
         },
-        "required": ["sample", "fastq_1"]
-    }
+        "required": ["sample", "fastq_1", "status", "replica", "library", "platform_unit"],
+        "additionalProperties": false
+        }
 }

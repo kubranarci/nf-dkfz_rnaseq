@@ -8,7 +8,8 @@ process SUBREAD_FEATURECOUNTS {
         : 'biocontainers/subread:2.0.6--he4a0461_2'}"
 
     input:
-    tuple val(meta), path(bams), path(annotation)
+    tuple val(meta), path(bams), path(bai)
+    tuple val(meta2), path(annotation)
 
     output:
     tuple val(meta), path("*featureCounts.tsv"), emit: counts

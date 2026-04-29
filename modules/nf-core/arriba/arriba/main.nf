@@ -8,7 +8,7 @@ process ARRIBA_ARRIBA {
         'community.wave.seqera.io/library/arriba_wget:a3e48cf793a0b654' }"
 
     input:
-    tuple val(meta),  path(bam)
+    tuple val(meta),  path(bam), path(bai), path(chimers)
     tuple val(meta2), path(fasta)
     tuple val(meta3), path(gtf)
     path(blacklist)
@@ -36,6 +36,7 @@ process ARRIBA_ARRIBA {
     """
     arriba \\
         -x ${bam} \\
+        -c ${chimers} \\
         -a ${fasta} \\
         -g ${gtf} \\
         -o ${prefix}.fusions.tsv \\

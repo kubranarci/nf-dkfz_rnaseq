@@ -1,0 +1,3 @@
+sample,bam,sam,status,donot_sort,donot_markdup
+multi_tumor,/omics/groups/OE0608/internal/kubran/nf-dkfz_rnaseq/tests/resources/resources2/arriba_pe_multi_tumor_rep1.bam,/omics/groups/OE0608/internal/kubran/nf-dkfz_rnaseq/tests/resources/resources2/arriba_pe_single_tumor_rep1_STAR.Chimeric.out.sam,tumor,false,false
+arriba_pe_multi,/omics/groups/OE0608/internal/kubran/nf-dkfz_rnaseq/tests/resources/resources2/half1_reads_paired-end_1.fastq.gz,/omics/groups/OE0608/internal/kubran/nf-dkfz_rnaseq/tests/resources/resources2/half1_reads_paired-end_2.fastq.gz,tumor,1,lib_pe_2,pu_pe_multi_1

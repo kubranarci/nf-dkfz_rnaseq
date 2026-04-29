@@ -33,7 +33,14 @@
                     "type": "string",
                     "description": "Skip tools",
                     "errorMessage": "A wrong input has been detected. Should be a comma-separated list of one or more of the following options: star, kallisto, rnaseqc, qualimap, feature_counts, dexseq, arriba, qcjson, fingerprinting",
-                    "pattern": "^((star|kallisto|rnaseqc|qualimap|feature_counts|dexseq|arriba|qcjson|fingerprinting)?,?)*(?<!,)$",
+                    "pattern": "^((star|kallisto|rnaseqc|qualimap|featurecounts|dexseq|arriba|qcjson|fingerprinting|qc)?,?)*(?<!,)$",
+                    "fa_icon": "fas fa-folder-open"
+                },
+                "run_kallisto": {
+                    "type": "string",
+                    "description": "Run kallisto with: unstranded, reverse or/and forward",
+                    "errorMessage": "A wrong input has been detected. Should be a comma-separated list of one or more of the following options: unstranded, referse, forward",
+                    "pattern": "^((unstranded|reverse|forward)?,?)*(?<!,)$",
                     "fa_icon": "fas fa-folder-open"
                 },
                 "multiqc_title": {
@@ -117,7 +124,33 @@
                     "mimetype": "text/plain",
                     "pattern": "^\\S+\\.gtf(\\.gz)?$",
                     "description": "Path to GTF annotation file.",
-                    "help_text": "This parameter is *mandatory* if `--genome` is not specified. The GTF file is used for read counting and other gene-based analyses.",
+                    "fa_icon": "far fa-file-code"
+                },
+                "genecode_gtf": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.gtf(\\.gz)?$",
+                    "description": "Path to Genecode GTF annotation file.",
+                    "fa_icon": "far fa-file-code"
+                },
+                "genecode_exclude": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.gtf(\\.gz)?$",
+                    "description": "Path to Genecode GTF Exclude file. Filtering chrXYMT",
+                    "fa_icon": "far fa-file-code"
+                },                
+                "genecode_dexseq": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.gff$",
+                    "description": "Path to Genecode DEXSEQ file.",
                     "fa_icon": "far fa-file-code"
                 },
                 "star": {
@@ -135,6 +168,13 @@
                     "pattern": "^\\S+\\.bed(\\.gz)?$",
                     "description": "Path to BED file containing genomic coordinates of fingerprinting sites.",
                     "fa_icon": "far fa-file-code"
+                },
+                "kallisto_index": {
+                    "type": "string",
+                    "format": "path",
+                    "exists": true,
+                    "fa_icon": "fas fa-bezier-curve",
+                    "description": "Path to directory or tar.gz archive for pre-built KALLISTO index."
                 },
                 "igenomes_ignore": {
                     "type": "boolean",

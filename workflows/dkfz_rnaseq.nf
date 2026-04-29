@@ -8,9 +8,12 @@ include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_dkfz_rnaseq_pipeline'
-include { STAR                   } from '../subworkflows/local/star/main'
-include { FINGERPRINTING         } from '../modules/local/fingerprinting/main'
-
+include { STAR_WF                } from '../subworkflows/local/star_wf/main'
+include { KALLISTO_WF            } from '../subworkflows/local/kallisto_wf/main'
+include { ARRIBA_WF              } from '../subworkflows/local/arriba_wf/main'
+include { QC_WF                  } from '../subworkflows/local/qc_wf/main'
+include { FEATURECOUNTS_WF as FEATURECOUNTS_PLAIN   } from '../subworkflows/local/featurecounts_wf/main'
+include { FEATURECOUNTS_WF as  FEATURECOUNTS_DEXSEQ } from '../subworkflows/local/featurecounts_wf/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -29,50 +32,127 @@ workflow DKFZ_RNASEQ {
     fai_ch   = params.fai   ? channel.fromPath(params.fai, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
     star_ch  = params.star  ? channel.fromPath(params.star, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
     gtf_ch   = params.gtf   ? channel.fromPath(params.gtf, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
+    gencode_gtf_ch          = params.gencode_gtf   ? channel.fromPath(params.gencode_gtf, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
+    gencode_exclude_ch      = params.gencode_exclude   ? channel.fromPath(params.gencode_exclude, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
+    gencode_dexseq_ch       = params.gencode_dexseq   ? channel.fromPath(params.gencode_dexseq, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
     fingerprinting_sites_ch = params.fingerprinting_sites ? channel.fromPath(params.fingerprinting_sites, checkIfExists: true).collect() : channel.empty()
+    kallisto_ch             = params.kallisto_index  ? channel.fromPath(params.kallisto_index, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
 
     ch_versions = channel.empty()
     ch_multiqc_files = channel.empty()
 
     // add feature: skip_alignmnet
+    // TODO: start from bam files skipping star
     // 
     if (params.skip_tools.contains("star")) {
         log.warn "Skipping STAR alignment as requested with --skip_tools. Downstream steps that depend on STAR output will likely fail, so use with caution."
     } else {
-
-        STAR (
+        STAR_WF (
             ch_samplesheet,
             star_ch,
             fasta_ch,
             gtf_ch
         )
-        ch_multiqc_files = ch_multiqc_files.mix(STAR.out.multiqc_files.map{ meta, files -> files })
-        ch_versions = ch_versions.mix(STAR.out.versions)
-
-        if (params.skip_tools.contains("fingerprinting")) {
-            log.warn "Skipping fingerprinting as requested with --skip_tools. Downstream steps that depend on Kallisto output will likely fail, so use with caution."
-        }else {
-            FINGERPRINTING(
-                STAR.out.ch_star_sorted_mkdup_bam,
-                fingerprinting_sites_ch
-            )
-            ch_versions = ch_versions.mix(FINGERPRINTING.out.versions)
-        }
-
-        if (params.skip_tools.contains("rnaseqc")){
-            log.warn "Skipping RNASeQC as requested with --skip_tools. Downstream steps that depend on RNASeQC output will likely fail, so use with caution."
-        }else{
-            //RNASEQC()
-        }
+        ch_multiqc_files = ch_multiqc_files.mix(STAR_WF.out.multiqc_files.map{ _meta, files -> files })
+        ch_versions = ch_versions.mix(STAR_WF.out.versions)
     }
 
+    if (params.skip_tools.contains("qc")) {
+        log.warn "Skipping STAR alignment as requested with --skip_tools. Downstream steps that depend on STAR output will likely fail, so use with caution."
+    } else {
+        QC_WF(
+            STAR_WF.out.ch_star_sorted_mkdup_bam,
+            STAR_WF.out.ch_star_unsorted_bam,
+            fasta_ch,
+            fai_ch,
+            fingerprinting_sites_ch,
+            gencode_gtf_ch,
+            STAR_WF.out.flagstat
+        )
+        ch_multiqc_files = ch_multiqc_files.mix(QC_WF.out.multiqc_files.map{ _meta, files -> files })
+        ch_versions = ch_versions.mix(QC_WF.out.versions)
+    }
 
+    if (params.skip_tools.contains("featurecounts")){
+        log.warn "Skipping featurecount as requested with --skip_tools. Downstream steps that depend on featurecount output will likely fail, so use with caution."
+    }else{
+        FEATURECOUNTS_PLAIN(
+            STAR_WF.out.ch_star_sorted_mkdup_bam,
+            gencode_gtf_ch,
+            channel.empty(),    
+            gencode_exclude_ch
+        )
+        ch_versions = ch_versions.mix(FEATURECOUNTS_PLAIN.out.versions)
+           
+    }
+
+    if (params.skip_tools.contains("dexseq")){
+        log.warn "Skipping dexseq as requested with --skip_tools. Downstream steps that depend on featurecounts_dexseq output will likely fail, so use with caution."
+    }else{
+        FEATURECOUNTS_DEXSEQ(
+            STAR_WF.out.ch_star_sorted_mkdup_bam,
+            gencode_gtf_ch,
+            gencode_dexseq_ch,
+            gencode_exclude_ch
+        )
+        ch_versions = ch_versions.mix(FEATURECOUNTS_DEXSEQ.out.versions)
+
+    }
+
+    if (params.skip_tools.contains("kallisto")) {
+        log.warn "Skipping KALLISTO alignment as requested with --skip_tools. Downstream steps that depend on KALLISTO output will likely fail, so use with caution."
+    } 
+    else 
+    {
+        // Branch the trimmed fastq channel to isolate paired-end samples
+        // running kallisto with single end reads is still possible if fragment_length and fragment_length_sd given!!
+        ch_reads_for_kallisto = ch_samplesheet.branch { meta, _reads ->
+            single_end: meta.single_end
+            paired_end: !meta.single_end
+        }
+        
+        KALLISTO_WF(
+            ch_reads_for_kallisto.paired_end,
+            kallisto_ch,
+            fasta_ch,
+            gencode_exclude_ch
+        )
+        ch_versions = ch_versions.mix(KALLISTO_WF.out.versions)
+
+    }
+
+    if (params.skip_tools.contains("arriba")){
+        log.warn "Skipping Arriba as requested with --skip_tools. Downstream steps that depend on Arriba output will likely fail, so use with caution."
+    }
+    else
+    {
+        STAR_WF.out.chimera_sam.map { meta, sam ->
+            def new_meta = meta.clone()
+            new_meta.remove('chimera')
+            return [ new_meta, sam ]
+        }.set{ch_star_chimera}
+
+        STAR_WF.out.ch_star_sorted_mkdup_bam.map { meta, bam, bai ->
+            def new_meta = meta.clone()
+            new_meta.remove('chimera')
+            return [ new_meta, bam, bai ]
+        }.set{ch_star_sorted_mkdup_bam}
+
+        ARRIBA_WF(
+            ch_star_sorted_mkdup_bam.join(ch_star_chimera),
+            fasta_ch,
+            gencode_gtf_ch,
+            [],[]
+        )
+        ch_versions = ch_versions.mix(ARRIBA_WF.out.versions)
+
+    }
 
 
     //
     // Collate and save software versions
     //
-    def topic_versions = Channel.topic("versions")
+    def topic_versions = channel.topic("versions")
         .distinct()
         .branch { entry ->
             versions_file: entry instanceof Path

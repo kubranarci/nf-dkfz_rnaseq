@@ -2,59 +2,54 @@
 
 [![Open in GitHub Codespaces](https://img.shields.io/badge/Open_In_GitHub_Codespaces-black?labelColor=grey&logo=github)](https://github.com/codespaces/new/nf/dkfz_rnaseq)
 [![GitHub Actions CI Status](https://github.com/nf/dkfz_rnaseq/actions/workflows/nf-test.yml/badge.svg)](https://github.com/nf/dkfz_rnaseq/actions/workflows/nf-test.yml)
-[![GitHub Actions Linting Status](https://github.com/nf/dkfz_rnaseq/actions/workflows/linting.yml/badge.svg)](https://github.com/nf/dkfz_rnaseq/actions/workflows/linting.yml)[![Cite with Zenodo](http://img.shields.io/badge/DOI-10.5281/zenodo.XXXXXXX-1073c8?labelColor=000000)](https://doi.org/10.5281/zenodo.XXXXXXX)
 [![nf-test](https://img.shields.io/badge/unit_tests-nf--test-337ab7.svg)](https://www.nf-test.com)
-
 [![Nextflow](https://img.shields.io/badge/version-%E2%89%A525.04.0-green?style=flat&logo=nextflow&logoColor=white&color=%230DC09D&link=https%3A%2F%2Fnextflow.io)](https://www.nextflow.io/)
-[![nf-core template version](https://img.shields.io/badge/nf--core_template-3.5.1-green?style=flat&logo=nfcore&logoColor=white&color=%2324B064&link=https%3A%2F%2Fnf-co.re)](https://github.com/nf-core/tools/releases/tag/3.5.1)
 [![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
 [![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
-[![Launch on Seqera Platform](https://img.shields.io/badge/Launch%20%F0%9F%9A%80-Seqera%20Platform-%234256e7)](https://cloud.seqera.io/launch?pipeline=https://github.com/nf/dkfz_rnaseq)
+
 
 ## Introduction
 
-**nf/dkfz_rnaseq** is a bioinformatics pipeline that ...
+**nf/dkfz_rnaseq** is a bioinformatics pipeline that processes bulk RNA sequencing data (both single-end and paired-end) to perform alignment, quality control, gene expression quantification, and fusion transcript detection. It ingests FASTQ files and standard genomic references (FASTA, GTF) to dynamically map reads using STAR, quantify transcript abundances using featureCounts and Kallisto, and detect structural fusions using Arriba. The pipeline accurately routes data through a highly parallelized Nextflow architecture to output sorted alignments, extensive QC metrics, raw count matrices, rescaled TPMs, and annotated fusion calls.
 
-<!-- TODO nf-core:
-   Complete this sentence with a 2-3 sentence summary of what types of data the pipeline ingests, a brief overview of the
-   major pipeline sections and the types of output it produces. You're giving an overview to someone new
-   to nf-core here, in 15-20 seconds. For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#introduction
--->
+### Pipeline Steps
 
-<!-- TODO nf-core: Include a figure that guides the user through the major workflow steps. Many nf-core
-     workflows use the "tube map" design for that. See https://nf-co.re/docs/guidelines/graphic_design/workflow_diagrams#examples for examples.   -->
-<!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->1. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))2. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
+1. **Index Generation**: Dynamic building of indices for mapping (`STAR`, `Kallisto`)
+2. **Alignment**: 2-pass read mapping and chimeric alignment generation (`STAR`)
+3. **Post-Alignment Processing**: Duplicate marking, sorting, indexing, and flagstat calculation (`Sambamba` and `Samtools`)
+4. **Quality Control**: Comprehensive metric calculation (`RNA-SeQC`, `QualiMap2`)
+5. **Gene/Exon Counting**: Read counting for standard gene models and exonic parts (`featureCounts`)
+6. **Transcript Quantification**: Pseudoalignment, abundance quantification, and TPM rescaling (`Kallisto`)
+7. **Fusion Detection**: Fusion transcript discovery and structural visualization (`Arriba`)
+8. **QC Aggregation**: Consolidated JSON report generation from Sambamba and RNA-SeQC metrics (`Custom Perl`)
 
 ## Usage
 
 > [!NOTE]
 > If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline) with `-profile test` before running the workflow on actual data.
 
-<!-- TODO nf-core: Describe the minimum required steps to execute the pipeline, e.g. how to prepare samplesheets.
-     Explain what rows and columns represent. For instance (please edit as appropriate):
-
-First, prepare a samplesheet with your input data that looks as follows:
+First, prepare a samplesheet with your input data that strictly adheres to the pipeline's JSON schema. 
 
 `samplesheet.csv`:
 
 ```csv
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
+sample,fastq_1,fastq_2,status,lane,replica,library,platform_unit
+patient_01,patient_01_tumor_R1.fastq.gz,patient_01_tumor_R2.fastq.gz,tumor,L001,1,libA,FC123_L1
+patient_01,patient_01_ctrl_R1.fastq.gz,patient_01_ctrl_R2.fastq.gz,control,L001,1,libB,FC123_L1
+patient_02,patient_02_tumor_R1.fastq.gz,,tumor,L002,1,libC,FC124_L2
 ```
 
-Each row represents a fastq file (single-end) or a pair of fastq files (paired end).
+Each row represents a fastq file (single-end) or a pair of fastq files (paired-end). For single-end data (as shown in the third row), leave the fastq_2 column empty. The pipeline uses the sample, status, and replica columns to automatically group multiple lanes belonging to the same read group before alignment.
 
--->
-
-Now, you can run the pipeline using:
-
-<!-- TODO nf-core: update the following command to include all required parameters for a minimal example -->
+Now, you can run the pipeline using the following minimal command:
 
 ```bash
 nextflow run nf/dkfz_rnaseq \
-   -profile <docker/singularity/.../institute> \
+   -profile <docker/singularity/conda> \
    --input samplesheet.csv \
+   --fasta <path_to_reference.fa> \
+   --gtf <path_to_annotation.gtf> \
    --outdir <OUTDIR>
 ```
 
@@ -63,11 +58,16 @@ nextflow run nf/dkfz_rnaseq \
 
 ## Credits
 
-nf/dkfz_rnaseq was originally written by kubranarci.
 
-We thank the following people for their extensive assistance in the development of this pipeline:
+nf/dkfz_rnaseq was ported to Nextflow by kubranarci.
 
-<!-- TODO nf-core: If applicable, make list of people who have also contributed -->
+This pipeline is a modern Nextflow adaptation of the original HIPO2 RNAseq workflow developed at the German Cancer Research Center (DKFZ). We thank the original authors for their extensive assistance and foundational architecture:
+
+- Naveed Ishaque
+
+- Michael Heinold
+
+- Jeongbin Park
 
 ## Contributions and Support
 

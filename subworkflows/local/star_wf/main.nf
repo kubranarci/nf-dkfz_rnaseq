@@ -8,17 +8,17 @@ include { SAMTOOLS_SORT       } from '../../../modules/nf-core/samtools/sort/mai
 include { SAMBAMBA_MARKDUP    } from '../../../modules/nf-core/sambamba/markdup/main'
 include { SAMBAMBA_FLAGSTAT   } from '../../../modules/nf-core/sambamba/flagstat/main'
 
-workflow STAR {
+workflow STAR_WF {
     take:
-    samplesheet     // channel: [val(meta), tumor, tumor_index, control, control_index, sv, snv ]
+    samplesheet     // channel: [val(meta), reads ]
     index           // channel: [val(meta), star_index] 
     fasta           // channel: [val(meta), fasta]
     gtf             // channel: [val(meta), gtf]
 
     main:
 
-    versions = Channel.empty()
-    multiqc_files = Channel.empty()
+    versions = channel.empty()
+    multiqc_files = channel.empty()
 
     // Fixed the space in the || operator
     if (params.generate_star_index) {
@@ -27,7 +27,6 @@ workflow STAR {
             fasta,
             gtf
         )
-
         index = STAR_GENOMEGENERATE.out.index
     }
     
@@ -61,13 +60,17 @@ workflow STAR {
         SAMTOOLS_SORT.out.bam.mix(sorted_bam)
     )   
     sorted_mkdup_bam = SAMBAMBA_MARKDUP.out.bam.join(SAMBAMBA_MARKDUP.out.bai)
+    versions         = versions.mix(SAMBAMBA_MARKDUP.out.versions)
+
 
     SAMBAMBA_FLAGSTAT(
         SAMBAMBA_MARKDUP.out.bam
     )
+    versions      = versions.mix(SAMBAMBA_FLAGSTAT.out.versions)
     multiqc_files = multiqc_files.mix(SAMBAMBA_FLAGSTAT.out.stats)
+    flagstat      = SAMBAMBA_FLAGSTAT.out.stats
 
-    sorted_mkdup_bam.branch { meta, bam, bai ->
+    sorted_mkdup_bam.branch { meta, _bam, _bai ->
         chimera: meta.chimera == true
         sorted_bam: meta.chimera == false
     }.set{ch_bam}
@@ -80,5 +83,6 @@ workflow STAR {
     multiqc_files
     ch_star_sorted_mkdup_bam
     ch_star_unsorted_bam
-
+    chimera_sam
+    flagstat
 }

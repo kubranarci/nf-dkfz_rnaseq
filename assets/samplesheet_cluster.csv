@@ -1,0 +1,7 @@
+sample,lane,fastq_1,fastq_2,status,replica,library,platform_unit
+arriba_pe_single,L1,/omics/groups/OE0608/internal/kubran/nf-dkfz_rnaseq/tests/resources/resources2/all_reads_paired-end_1.fastq.gz,/omics/groups/OE0608/internal/kubran/nf-dkfz_rnaseq/tests/resources/resources2/all_reads_paired-end_2.fastq.gz,tumor,1,lib_pe_1,pu_pe_1
+arriba_pe_multi,L1,/omics/groups/OE0608/internal/kubran/nf-dkfz_rnaseq/tests/resources/resources2/half1_reads_paired-end_1.fastq.gz,/omics/groups/OE0608/internal/kubran/nf-dkfz_rnaseq/tests/resources/resources2/half1_reads_paired-end_2.fastq.gz,tumor,1,lib_pe_2,pu_pe_multi_1
+arriba_pe_multi,L2,/omics/groups/OE0608/internal/kubran/nf-dkfz_rnaseq/tests/resources/resources2/half2_reads_paired-end_1.fastq.gz,/omics/groups/OE0608/internal/kubran/nf-dkfz_rnaseq/tests/resources/resources2/half2_reads_paired-end_2.fastq.gz,tumor,1,lib_pe_2,pu_pe_multi_2
+arriba_se_single,L1,/omics/groups/OE0608/internal/kubran/nf-dkfz_rnaseq/tests/resources/resources2/all_reads_single-end.fastq.gz,,tumor,1,lib_se_1,pu_se_1
+arriba_se_multi,L2,/omics/groups/OE0608/internal/kubran/nf-dkfz_rnaseq/tests/resources/resources2/half2_reads_single-end.fastq.gz,,tumor,1,lib_se_2,pu_se_multi_2
+arriba_se_multi,L1,/omics/groups/OE0608/internal/kubran/nf-dkfz_rnaseq/tests/resources/resources2/half1_reads_single-end.fastq.gz,,tumor,1,lib_se_2,pu_se_multi_1

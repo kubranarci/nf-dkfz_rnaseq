@@ -2,10 +2,10 @@ process KALLISTO_QUANT {
     tag "$meta.id"
     label 'process_high'
 
-    conda "${moduleDir}/environment.yml"
+    conda "bioconda::kallisto=0.46.2"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/kallisto:0.51.1--heb0cbe2_0':
-        'biocontainers/kallisto:0.51.1--heb0cbe2_0' }"
+        'https://depot.galaxyproject.org/singularity/kallisto:0.46.2--h4f7b962_1':
+        'quay.io/biocontainers/kallisto:0.46.2--h4f7b962_1' }"
 
     input:
     tuple val(meta), path(reads)

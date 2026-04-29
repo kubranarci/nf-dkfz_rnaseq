@@ -16,16 +16,26 @@
             "fastq_1": {
                 "type": "string",
                 "format": "file-path",
-                "exists": true,
                 "pattern": "^([\\S\\s]*\\/)?[^\\s\\/]+\\.f(ast)?q\\.gz$",
-                "errorMessage": "FastQ file for reads 1 must be provided, cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+                "errorMessage": "FastQ file for reads 1 cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
             },
             "fastq_2": {
                 "type": "string",
                 "format": "file-path",
-                "exists": true,
                 "pattern": "^([\\S\\s]*\\/)?[^\\s\\/]+\\.f(ast)?q\\.gz$",
                 "errorMessage": "FastQ file for reads 2 cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+            },
+            "bam": {
+                "type": "string",
+                "format": "file-path",
+                "pattern": "^([\\S\\s]*\\/)?[^\\s\\/]+\\.bam$",
+                "errorMessage": "STAR aligned bam files. If files are sorted use --donot_sort and if files are markdup use --donot_markdup. This has to be coupled with Chimera sam input"
+            },
+            "sam": {
+                "type": "string",
+                "format": "file-path",
+                "pattern": "^([\\S\\s]*\\/)?[^\\s\\/]+\\.sam$",
+                "errorMessage": "STAR chimera sam files, this has to be coupled with STAR aligned bam files"
             },
             "status": {
                 "type": "string",
@@ -55,9 +65,36 @@
                 "pattern": "^\\S+$",
                 "errorMessage": "Usually the flowcell barcode and lane. This is strictly used by analysts to track down hardware-specific batch effects or sequencing lane failures. Must be provided and cannot contain spaces",
                 "meta": ["platform_unit"]
+            },
+            "donot_sort": {
+                "type": "boolean",
+                "errorMessage": "Do not sort if BAM file is already sorted",
+                "meta": ["sorted"]
+            },
+            "donot_markdup": {
+                "type": "boolean",
+                "errorMessage": "Do not markdup if BAM file is already markdup",
+                "meta": ["markdup"]
             }
         },
-        "required": ["sample", "fastq_1", "status", "replica", "library", "platform_unit"],
+        "required": [
+            "sample", 
+            "status" 
+        ],
+        "anyOf": [
+            {
+                "required": ["fastq_1"]
+            },
+            {
+                "required": ["bam", "sam"]
+            }
+        ],
+        "dependentRequired": {
+            "fastq_1": ["replica", "library", "platform_unit"],
+            "fastq_2": ["fastq_1"],
+            "bam": ["sam"],
+            "sam": ["bam"]
+        },
         "additionalProperties": false
-        }
+    }
 }

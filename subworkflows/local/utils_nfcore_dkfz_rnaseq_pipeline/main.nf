@@ -83,34 +83,27 @@ workflow PIPELINE_INITIALISATION {
     //
     channel
         .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
-        .map { meta, fastq_1, fastq_2, bam, sam ->
-            // Create the group key without the lane to allow lane grouping
+        .map { meta, fastq_1, fastq_2 ->
             def group_key = "${meta.sample}_${meta.status}_rep${meta.replica}" 
-            def new_meta = meta + [id: group_key, single_end: !fastq_2]
             
-            return [ group_key, new_meta, fastq_1, fastq_2, bam, sam ]
+            def new_meta = meta + [id: group_key]
+            if (!fastq_2) {
+                return [ group_key, new_meta + [ single_end:true ], [ fastq_1 ] ]
+            } else {
+                return [ group_key, new_meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
+            }
         }
-        .branch { group_key, meta, fastq_1, fastq_2, bam, sam ->
-            
-            needs_alignment: fastq_1 != null
-                // Format for grouping: [ group_key, meta, [reads] ]
-                return [ group_key, meta, fastq_2 ? [fastq_1, fastq_2] : [fastq_1] ]
-                
-            pre_aligned: bam != null && sam != null
-                // Format mimicking STAR outputs directly: [ meta, bam, sam ]
-                return [ meta, bam, sam ]
-                
-        }
-        .set { ch_branched_input }
-    ch_samplesheet = ch_branched_input.needs_alignment
-        .groupTuple(by: 0)
-        .map { _group_key, metas, fastqs ->
-            return [ metas[0], fastqs.flatten() ] 
-        }
+        .groupTuple(by: [0]) 
+                .map { group_key, metas, fastqs ->
+                    return [ group_key, metas, fastqs.flatten() ]
+                }
+                .map { input ->
+                    validateInputSamplesheet(input)
+                }
+                .set { ch_samplesheet }
 
     emit:
     samplesheet = ch_samplesheet
-    alignments  = ch_branched_input.needs_alignment
     versions    = ch_versions
 }
 

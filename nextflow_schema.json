@@ -33,7 +33,7 @@
                     "type": "string",
                     "description": "Skip tools",
                     "errorMessage": "A wrong input has been detected. Should be a comma-separated list of one or more of the following options: star, kallisto, rnaseqc, qualimap, feature_counts, dexseq, arriba, qcjson, fingerprinting",
-                    "pattern": "^((star|kallisto|rnaseqc|qualimap|featurecounts|dexseq|arriba|qcjson|fingerprinting|qc)?,?)*(?<!,)$",
+                    "pattern": "^((star|kallisto|salmon|rnaseqc|qualimap|featurecounts|dexseq|arriba|qcjson|fingerprinting|qc|rustqc)?,?)*(?<!,)$",
                     "fa_icon": "fas fa-folder-open"
                 },
                 "run_kallisto": {
@@ -135,6 +135,15 @@
                     "description": "Path to Genecode GTF annotation file.",
                     "fa_icon": "far fa-file-code"
                 },
+                "transcriptome": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.fa(\\.gz)?$",
+                    "description": "Path to Genecode Transcriptome fasta file.",
+                    "fa_icon": "far fa-file-code"
+                },
                 "genecode_exclude": {
                     "type": "string",
                     "format": "file-path",
@@ -153,12 +162,12 @@
                     "description": "Path to Genecode DEXSEQ file.",
                     "fa_icon": "far fa-file-code"
                 },
-                "star": {
+                "star_index": {
                     "type": "string",
                     "format": "path",
                     "exists": true,
                     "fa_icon": "fas fa-bezier-curve",
-                    "description": "Path to directory or tar.gz archive for pre-built STAR index."
+                    "description": "Path to directory or tar.gz archive for pre-built STAR index. Will be build if not exist"
                 },
                 "fingerprinting_sites": {
                     "type": "string",
@@ -174,7 +183,21 @@
                     "format": "path",
                     "exists": true,
                     "fa_icon": "fas fa-bezier-curve",
-                    "description": "Path to directory or tar.gz archive for pre-built KALLISTO index."
+                    "description": "Path to directory or tar.gz archive for pre-built KALLISTO index. Will be build if not exist"
+                },
+                "rsem_index": {
+                    "type": "string",
+                    "format": "path",
+                    "exists": true,
+                    "fa_icon": "fas fa-bezier-curve",
+                    "description": "Path to directory fa file for pre-built RSEM index. Will be build if not exist"
+                },
+                "salmon_index": {
+                    "type": "string",
+                    "format": "path",
+                    "exists": true,
+                    "fa_icon": "fas fa-bezier-curve",
+                    "description": "Path to directory fa file for pre-built SALMON index. Will be build if not exist"
                 },
                 "igenomes_ignore": {
                     "type": "boolean",

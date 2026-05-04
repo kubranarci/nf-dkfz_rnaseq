@@ -16,6 +16,7 @@ workflow FEATURECOUNTS_WF {
     main:
 
     versions = channel.empty()
+    multiqc_files = channel.empty()
 
     ch_featurecounts_scatter = mkdup_map.flatMap { meta, bam, bai ->
                 return [
@@ -35,6 +36,8 @@ workflow FEATURECOUNTS_WF {
         ch_gtf_to_use            
     )
     versions = versions.mix(SUBREAD_FEATURECOUNTS.out.versions)
+    multiqc_files = multiqc_files.mix(SUBREAD_FEATURECOUNTS.out.summary)
+    
 
     ch_featurecounts_gathered = SUBREAD_FEATURECOUNTS.out.counts
                 .map { meta, counts ->
@@ -77,23 +80,27 @@ workflow FEATURECOUNTS_WF {
 
     
     FKPM_CALCULATOR_DEXSEQ(
-        ch_routed_counts.dexseq.map { meta, counts, flag -> [meta, counts] },
-        ch_routed_summaries.dexseq.map { meta, summary, flag -> [meta, summary] },
+        ch_routed_counts.dexseq.map { meta, counts, _flag -> [meta, counts] },
+        ch_routed_summaries.dexseq.map { meta, summary, _flag -> [meta, summary] },
         gencode_gtf_ch, 
         gencode_exclude_ch
     )
     versions = versions.mix(FKPM_CALCULATOR_DEXSEQ.out.versions)
+    multiqc_files = multiqc_files.mix(FKPM_CALCULATOR_DEXSEQ.out.fpkm_tpm)
+
 
 
     FKPM_CALCULATOR(
-        ch_routed_counts.standard.map { meta, counts, flag -> [meta, counts] },
-        ch_routed_summaries.standard.map { meta, summary, flag -> [meta, summary] },
+        ch_routed_counts.standard.map { meta, counts, _flag -> [meta, counts] },
+        ch_routed_summaries.standard.map { meta, summary, _flag -> [meta, summary] },
         gencode_gtf_ch,
         gencode_exclude_ch
     )
     versions = versions.mix(FKPM_CALCULATOR.out.versions)
+    multiqc_files = multiqc_files.mix(FKPM_CALCULATOR.out.fpkm_tpm)
 
     emit:
     versions
+    multiqc_files
 
 }

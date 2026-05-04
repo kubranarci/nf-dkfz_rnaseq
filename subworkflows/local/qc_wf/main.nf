@@ -6,7 +6,7 @@ include { FINGERPRINTING    } from '../../../modules/local/fingerprinting/main'
 include { RNASEQC           } from '../../../modules/local/rnaseqc/main'
 include { QUALIMAP_RNASEQ   } from '../../../modules/nf-core/qualimap/rnaseq/main'
 include { QC_JSON           } from '../../../modules/local/qc_json/main'
-
+ include { RUSTQC           } from '../../../modules/nf-core/rustqc/main'                                                                                                  
 workflow QC_WF {
     take:
     ch_star_sorted_mkdup_bam     // channel: [val(meta), bam, bai ]
@@ -41,6 +41,7 @@ workflow QC_WF {
             fasta,
             fai
         )
+        multiqc_files = multiqc_files.mix(RNASEQC.out.metrics)
     }
 
     if (params.skip_tools.contains("qualimap")){
@@ -51,6 +52,7 @@ workflow QC_WF {
             gtf
         )
         versions = versions.mix(QUALIMAP_RNASEQ.out.versions)  
+        multiqc_files = multiqc_files.mix(QUALIMAP_RNASEQ.out.results)
     }
 
     if (params.skip_tools.contains("qcjson")){
@@ -60,7 +62,23 @@ workflow QC_WF {
             RNASEQC.out.metrics.join(flagstat)
         )
         versions = versions.mix(QC_JSON.out.versions)  
+        multiqc_files = multiqc_files.mix(QC_JSON.out.json)
+
     }
+
+    if (params.skip_tools.contains("rustqc")){
+        log.warn "Skipping RUSTQC as requested with --skip_tools. Downstream steps that depend on RUSTQC output will likely fail, so use with caution."
+    }else{
+        RUSTQC(
+            ch_star_sorted_mkdup_bam,
+            gtf
+        )
+        multiqc_files = multiqc_files.mix(RUSTQC.out.dupradar,
+                                        RUSTQC.out.samtools, 
+                                        RUSTQC.out.featurecounts,
+                                        RUSTQC.out.qualimap,
+                                        RUSTQC.out.rseqc)
+    }    
 
 
     emit:

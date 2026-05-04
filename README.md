@@ -11,18 +11,35 @@
 
 ## Introduction
 
-**nf/dkfz_rnaseq** is a bioinformatics pipeline that processes bulk RNA sequencing data (both single-end and paired-end) to perform alignment, quality control, gene expression quantification, and fusion transcript detection. It ingests FASTQ files and standard genomic references (FASTA, GTF) to dynamically map reads using STAR, quantify transcript abundances using featureCounts and Kallisto, and detect structural fusions using Arriba. The pipeline accurately routes data through a highly parallelized Nextflow architecture to output sorted alignments, extensive QC metrics, raw count matrices, rescaled TPMs, and annotated fusion calls.
+
+**nf/dkfz_rnaseq** is a bioinformatics pipeline that processes bulk RNA sequencing data (both single-end and paired-end) to perform comprehensive alignment, quality control, multi-algorithmic expression quantification, and fusion transcript detection. 
+
+It is designed for high-throughput, robust analysis. The pipeline leverages standard genomic and transcriptomic references to dynamically map reads using STAR, while providing highly parallelized multi-tool quantification using featureCounts, Kallisto, RSEM, and Salmon. It incorporates advanced dynamic strandedness detection, FPKM/DEXSeq calculation arrays, and structural fusion plotting. Data is accurately routed through a Nextflow architecture to output sorted alignments, extensive aggregated QC metrics, raw count matrices, rescaled transcript abundances, and annotated fusion calls.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/metromap.svg">
+  <img alt="nf/dkfz_rnaseq metro map" src="docs/images/metromap.svg">
+</picture>
 
 ### Pipeline Steps
 
-1. **Index Generation**: Dynamic building of indices for mapping (`STAR`, `Kallisto`)
-2. **Alignment**: 2-pass read mapping and chimeric alignment generation (`STAR`)
-3. **Post-Alignment Processing**: Duplicate marking, sorting, indexing, and flagstat calculation (`Sambamba` and `Samtools`)
-4. **Quality Control**: Comprehensive metric calculation (`RNA-SeQC`, `QualiMap2`)
-5. **Gene/Exon Counting**: Read counting for standard gene models and exonic parts (`featureCounts`)
-6. **Transcript Quantification**: Pseudoalignment, abundance quantification, and TPM rescaling (`Kallisto`)
-7. **Fusion Detection**: Fusion transcript discovery and structural visualization (`Arriba`)
-8. **QC Aggregation**: Consolidated JSON report generation from Sambamba and RNA-SeQC metrics (`Custom Perl`)
+1. **Index Generation**: Dynamic building of reference indices (`STAR`, `Kallisto`, `RSEM`, `Salmon`).
+2. **Alignment**: 2-pass genomic read mapping, transcriptomic BAM generation, and chimeric alignment generation (`STAR`).
+3. **Post-Alignment Processing**: Duplicate marking, sorting, indexing, and flagstat calculation (`Sambamba`, `Samtools`).
+4. **Comprehensive Quality Control**:
+   - Sequencing and mapping metrics (`RNA-SeQC`, `QualiMap2`)
+   - Sample clustering and fingerprinting (`Custom Fingerprinting`)
+   - Consolidated JSON QC report generation (`Custom QC JSON`)
+5. **Gene & Exon Counting**: 
+   - Multi-strandedness scatter-gather read counting (`featureCounts`)
+   - Standard gene model and exonic part quantification
+   - Automated expression rescaling and metric generation (`FPKM Calculator`, `DEXSeq FPKM Calculator`)
+6. **Transcript Quantification**: 
+   - Fast transcript quantification (`Salmon`)
+   - Pseudoalignment and abundance quantification (`Kallisto`)
+   - Abundance scaling (`Kallisto Rescale`)
+   - Accurate transcript and gene-level expression calculation via transcriptomic alignments (`RSEM`)
+7. **Fusion Detection**: Fusion transcript discovery (`Arriba`) and automated structural visualization (`Draw Fusions`).
 
 ## Usage
 
@@ -41,6 +58,8 @@ patient_02,patient_02_tumor_R1.fastq.gz,,tumor,L002,1,libC,FC124_L2
 ```
 
 Each row represents a fastq file (single-end) or a pair of fastq files (paired-end). For single-end data (as shown in the third row), leave the fastq_2 column empty. The pipeline uses the sample, status, and replica columns to automatically group multiple lanes belonging to the same read group before alignment.
+
+You can selectively disable downstream branches by passing tool names to the --skip_tools parameter (e.g., --skip_tools "star,rsem,salmon").
 
 Now, you can run the pipeline using the following minimal command:
 

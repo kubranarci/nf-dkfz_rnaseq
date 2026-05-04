@@ -1,0 +1,152 @@
+%%metro title: nf/dkfz_rnaseq
+%%metro style: dark
+%%metro line_order: span
+%%metro legend: bl
+%%metro compact_offsets: true
+
+%%metro file: samplesheet_file | CSV
+%%metro file: star_bam | BAM
+%%metro file: counts_tsv | TSV
+%%metro file: salmon_sf | SF
+%%metro file: fusion_tsv | TSV
+%%metro file: multiqc_out | HTML
+
+%% -- METHOD PATHS --
+%%metro line: star_rsem | Aligner: STAR, Quant: RSEM | #00305e
+%%metro line: star_fc | Aligner: STAR, Quant: featureCounts | #2ecc71
+%%metro line: pseudo_salmon | Pseudo-aligner: Salmon | #e91e63
+%%metro line: pseudo_kallisto | Pseudo-aligner: Kallisto | #9c27b0
+%%metro line: report | QC / Metrics | #95a5a6
+
+graph LR
+    %% ==========================================
+    %% 1. PRE-PROCESSING
+    %% ==========================================
+    subgraph STAGE_1 [1. Pre-processing]
+        samplesheet_file[ ]
+        samplesheet[Samplesheet]
+        fastqc[FastQC]
+        _input_hub[hidden]
+
+        samplesheet_file -->|star_rsem| samplesheet
+        samplesheet_file -->|star_fc| samplesheet
+        samplesheet_file -->|pseudo_salmon| samplesheet
+        samplesheet_file -->|pseudo_kallisto| samplesheet
+        
+        samplesheet -->|star_rsem| fastqc
+        samplesheet -->|star_fc| fastqc
+        samplesheet -->|pseudo_salmon| fastqc
+        samplesheet -->|pseudo_kallisto| fastqc
+
+        fastqc -->|star_rsem| _input_hub
+        fastqc -->|star_fc| _input_hub
+        fastqc -->|pseudo_salmon| _input_hub
+        fastqc -->|pseudo_kallisto| _input_hub
+    end
+
+    %% ==========================================
+    %% 2. GENOME ALIGNMENT & QUANTIFICATION
+    %% ==========================================
+    subgraph STAGE_2 [2. Genome Alignment & Quant]
+        star_idx[STAR Index]
+        star_align[STAR Align]
+        rsem_calc[RSEM Calc]
+        
+        fc_count[featureCounts]
+        counts_tsv[ ]
+
+        _input_hub -->|star_rsem| star_align
+        _input_hub -->|star_fc| star_align
+
+        star_idx -->|star_rsem| star_align
+        star_idx -->|star_fc| star_align
+
+        star_align -->|star_rsem| rsem_calc
+        star_align -->|star_fc| fc_count
+        
+        fc_count -->|star_fc| counts_tsv
+    end
+
+    %% ==========================================
+    %% 3. PSEUDO-ALIGNMENT & QUANTIFICATION
+    %% ==========================================
+    subgraph STAGE_3 [3. Pseudo-alignment & Quant]
+        salmon_quant[Salmon Quant]
+        salmon_sf[ ]
+        kallisto_quant[Kallisto Quant]
+        kallisto_rescale[Kallisto Rescale]
+
+        _input_hub -->|pseudo_salmon| salmon_quant
+        salmon_quant -->|pseudo_salmon| salmon_sf
+
+        _input_hub -->|pseudo_kallisto| kallisto_quant
+        kallisto_quant -->|pseudo_kallisto| kallisto_rescale
+    end
+
+    %% ==========================================
+    %% 4. POST-PROCESSING & VARIANTS
+    %% ==========================================
+    subgraph STAGE_4 [4. Post-processing]
+        sam_sort[Samtools Sort]
+        markdup[Sambamba MarkDup]
+        star_bam[ ]
+        arriba[Arriba Fusion]
+        fusion_tsv[ ]
+        
+        star_align -->|star_rsem| sam_sort
+        star_align -->|star_fc| sam_sort
+        
+        sam_sort -->|star_rsem| markdup
+        sam_sort -->|star_fc| markdup
+        markdup -->|star_fc| star_bam
+
+        markdup -->|star_rsem| arriba
+        markdup -->|star_fc| arriba
+        arriba -->|star_fc| fusion_tsv
+    end
+
+    %% ==========================================
+    %% 5. FINAL QC & REPORTING
+    %% ==========================================
+    subgraph STAGE_5 [5. Final QC]
+        rustqc[RustQC]
+        qualimap[QualiMap]
+        rnaseqc[RNA-SeQC]
+        fingerprint[Fingerprinting]
+        qc_json[QC JSON Gen]
+        multiqc[MultiQC]
+        multiqc_out[ ]
+
+        %% Parallel consumption of Aligned Data
+        markdup -->|report| rustqc
+        markdup -->|report| qualimap
+        markdup -->|report| rnaseqc
+        markdup -->|report| fingerprint
+        
+        %% Spacing spine to keep them horizontal
+        rustqc -->|report| qualimap
+        qualimap -->|report| rnaseqc
+        rnaseqc -->|report| fingerprint
+
+        %% Metric Aggregation
+        rustqc -->|report| multiqc
+        qualimap -->|report| qc_json
+        rnaseqc -->|report| qc_json
+        fingerprint -->|report| qc_json
+        
+        qc_json -->|report| multiqc
+
+        %% Method Convergence
+        rsem_calc -->|report| multiqc
+        fc_count -->|report| multiqc
+        salmon_quant -->|report| multiqc
+        kallisto_rescale -->|report| multiqc
+        arriba -->|report| multiqc
+        
+        multiqc -->|report| multiqc_out
+    end
+
+    %% Layout Spacing
+    STAGE_2 ~~~ STAGE_3
+    STAGE_3 ~~~ STAGE_4
+    STAGE_4 ~~~ STAGE_5

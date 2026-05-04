@@ -4,6 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
+include { FASTQC                 } from '../modules/nf-core/fastqc/main'
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -12,6 +13,8 @@ include { STAR_WF                } from '../subworkflows/local/star_wf/main'
 include { KALLISTO_WF            } from '../subworkflows/local/kallisto_wf/main'
 include { ARRIBA_WF              } from '../subworkflows/local/arriba_wf/main'
 include { QC_WF                  } from '../subworkflows/local/qc_wf/main'
+include { RSEM_WF                } from '../subworkflows/local/rsem_wf/main'
+include { SALMON_WF              } from '../subworkflows/local/salmon_wf/main'
 include { FEATURECOUNTS_WF as FEATURECOUNTS_PLAIN   } from '../subworkflows/local/featurecounts_wf/main'
 include { FEATURECOUNTS_WF as  FEATURECOUNTS_DEXSEQ } from '../subworkflows/local/featurecounts_wf/main'
 
@@ -30,17 +33,29 @@ workflow DKFZ_RNASEQ {
     // create reference channels
     fasta_ch = params.fasta ? channel.fromPath(params.fasta, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
     fai_ch   = params.fai   ? channel.fromPath(params.fai, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
-    star_ch  = params.star  ? channel.fromPath(params.star, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
+    star_ch                 = params.star_index  ? channel.fromPath(params.star_index, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
+    kallisto_ch             = params.kallisto_index  ? channel.fromPath(params.kallisto_index, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
+    rsem_ch                 = params.rsem_index  ? channel.fromPath(params.rsem_index, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
+    salmon_ch               = params.salmon_index  ? channel.fromPath(params.salmon_index, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
     gtf_ch   = params.gtf   ? channel.fromPath(params.gtf, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
     gencode_gtf_ch          = params.gencode_gtf   ? channel.fromPath(params.gencode_gtf, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
     gencode_exclude_ch      = params.gencode_exclude   ? channel.fromPath(params.gencode_exclude, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
     gencode_dexseq_ch       = params.gencode_dexseq   ? channel.fromPath(params.gencode_dexseq, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
     fingerprinting_sites_ch = params.fingerprinting_sites ? channel.fromPath(params.fingerprinting_sites, checkIfExists: true).collect() : channel.empty()
-    kallisto_ch             = params.kallisto_index  ? channel.fromPath(params.kallisto_index, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
+    transcriptome_ch        = params.transcriptome   ? channel.fromPath(params.transcriptome, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
 
     ch_versions = channel.empty()
     ch_multiqc_files = channel.empty()
 
+    if (params.skip_tools.contains("fastqc")) {
+        log.warn "Skipping FASTQC as requested with --skip_tools. Use with caution."
+    } else {
+        FASTQC (
+            ch_samplesheet
+        )
+        ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.html.map{ _meta, files -> files })
+        ch_versions = ch_versions.mix(FASTQC.out.versions)
+    }
     // add feature: skip_alignmnet
     // TODO: start from bam files skipping star
     // 
@@ -83,6 +98,7 @@ workflow DKFZ_RNASEQ {
             gencode_exclude_ch
         )
         ch_versions = ch_versions.mix(FEATURECOUNTS_PLAIN.out.versions)
+        ch_multiqc_files = ch_multiqc_files.mix(FEATURECOUNTS_PLAIN.out.multiqc_files.map{ _meta, files -> files })
            
     }
 
@@ -96,30 +112,10 @@ workflow DKFZ_RNASEQ {
             gencode_exclude_ch
         )
         ch_versions = ch_versions.mix(FEATURECOUNTS_DEXSEQ.out.versions)
+        ch_multiqc_files = ch_multiqc_files.mix(FEATURECOUNTS_DEXSEQ.out.multiqc_files.map{ _meta, files -> files })
 
     }
 
-    if (params.skip_tools.contains("kallisto")) {
-        log.warn "Skipping KALLISTO alignment as requested with --skip_tools. Downstream steps that depend on KALLISTO output will likely fail, so use with caution."
-    } 
-    else 
-    {
-        // Branch the trimmed fastq channel to isolate paired-end samples
-        // running kallisto with single end reads is still possible if fragment_length and fragment_length_sd given!!
-        ch_reads_for_kallisto = ch_samplesheet.branch { meta, _reads ->
-            single_end: meta.single_end
-            paired_end: !meta.single_end
-        }
-        
-        KALLISTO_WF(
-            ch_reads_for_kallisto.paired_end,
-            kallisto_ch,
-            fasta_ch,
-            gencode_exclude_ch
-        )
-        ch_versions = ch_versions.mix(KALLISTO_WF.out.versions)
-
-    }
 
     if (params.skip_tools.contains("arriba")){
         log.warn "Skipping Arriba as requested with --skip_tools. Downstream steps that depend on Arriba output will likely fail, so use with caution."
@@ -145,9 +141,66 @@ workflow DKFZ_RNASEQ {
             [],[]
         )
         ch_versions = ch_versions.mix(ARRIBA_WF.out.versions)
+        ch_multiqc_files = ch_multiqc_files.mix(ARRIBA_WF.out.multiqc_files.map{ _meta, files -> files })
 
     }
 
+    if (params.skip_tools.contains("rsem")){
+        log.warn "Skipping RSEM as requested with --skip_tools. Downstream steps that depend on RSEM output will likely fail, so use with caution."
+    }
+    else
+    {
+        RSEM_WF(
+            STAR_WF.out.ch_star_transcripts,
+            fasta_ch,
+            gtf_ch,
+            rsem_ch
+        )
+        ch_multiqc_files = ch_multiqc_files.mix(RSEM_WF.out.multiqc_files.map{ _meta, files -> files })
+
+    }
+
+    if (params.skip_tools.contains("salmon")){
+        log.warn "Skipping SALMON as requested with --skip_tools. Downstream steps that depend on SALMON output will likely fail, so use with caution."
+    }
+    else
+    {
+        SALMON_WF(
+            ch_samplesheet,
+            fasta_ch,
+            salmon_ch,
+            transcriptome_ch,
+            gencode_gtf_ch
+        )
+        ch_multiqc_files = ch_multiqc_files.mix(SALMON_WF.out.multiqc_files.map{ _meta, files -> files })
+
+    }
+ 
+
+
+    if (params.skip_tools.contains("kallisto")) {
+        log.warn "Skipping KALLISTO alignment as requested with --skip_tools. Downstream steps that depend on KALLISTO output will likely fail, so use with caution."
+    } 
+    else 
+    {
+        // Branch the trimmed fastq channel to isolate paired-end samples
+        // running kallisto with single end reads is still possible if fragment_length and fragment_length_sd given!!
+        ch_reads_for_kallisto = ch_samplesheet.branch { meta, _reads ->
+            single_end: meta.single_end
+            paired_end: !meta.single_end
+        }
+        
+        KALLISTO_WF(
+            ch_reads_for_kallisto.paired_end,
+            kallisto_ch,
+            fasta_ch,
+            gencode_exclude_ch,
+            kallisto_ch
+        )
+        ch_versions = ch_versions.mix(KALLISTO_WF.out.versions)
+        ch_multiqc_files = ch_multiqc_files.mix(KALLISTO_WF.out.multiqc_files.map{ _meta, files -> files })
+
+    }
 
     //
     // Collate and save software versions

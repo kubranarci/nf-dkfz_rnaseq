@@ -13,18 +13,19 @@ workflow KALLISTO_WF {
     index               // channel: [val(meta), star_index] 
     fasta               // channel: [val(meta), fasta]
     gencode_exclude_ch  // channel: [val(meta), gtf]
+    kallisto_index      // channel: [val(meta), index]
 
     main:
 
     versions = channel.empty()
     multiqc_files = channel.empty()
 
-    if (params.generate_kallisto_index) {
+    if (!params.kallisto_index) {
         KALLISTO_INDEX (
             fasta
         )
 
-        index = KALLISTO_INDEX.out.index
+        kallisto_index = KALLISTO_INDEX.out.index
     }
     
     ch_kallisto_modes = channel.fromList( 
@@ -44,16 +45,15 @@ workflow KALLISTO_WF {
 
     KALLISTO_QUANT(
         ch_kallisto_scatter,
-        index,
+        kallisto_index,
         [],[],"",""
     )
+    multiqc_files = multiqc_files.mix(KALLISTO_QUANT.out.log.map{_meta, file -> file})
 
     KALLISTO_RESCALE(
        KALLISTO_QUANT.out.results,
        gencode_exclude_ch
-
     )
-
 
     emit:
     versions

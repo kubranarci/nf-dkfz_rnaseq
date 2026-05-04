@@ -14,7 +14,7 @@ process FKPM_CALCULATOR {
     tuple val(meta4), path(gtf_exclude)
 
     output:
-    tuple val(meta), path("*.tsv")         ,emit: fpkm_tpm
+    tuple val(meta), path("*.tsv")         , emit: fpkm_tpm
     tuple val(meta), path("*_raw.tgz")     , emit: raw_counts_archive
     path  "versions.yml"                   , emit: versions
 

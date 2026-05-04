@@ -27,11 +27,13 @@ workflow ARRIBA_WF {
         [],[],[],[]
     )
     versions = versions.mix(ARRIBA_ARRIBA.out.versions)
+    multiqc_files = multiqc_files.mix(ARRIBA_ARRIBA.out.fusions_fail)
 
     DRAW_FUSIONS(
         ARRIBA_ARRIBA.out.fusions,
         gencode_gtf_ch
     )
+    multiqc_files = multiqc_files.mix(DRAW_FUSIONS.out.pdf)
 
     emit:
     versions

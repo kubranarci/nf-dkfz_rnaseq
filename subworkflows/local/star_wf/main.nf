@@ -21,7 +21,7 @@ workflow STAR_WF {
     multiqc_files = channel.empty()
 
     // Fixed the space in the || operator
-    if (params.generate_star_index) {
+    if (!params.star_index) {
 
         STAR_GENOMEGENERATE (
             fasta,
@@ -39,6 +39,8 @@ workflow STAR_WF {
         params.seq_center
     )
     versions = STAR_ALIGN.out.versions
+    ch_star_transcripts = STAR_ALIGN.out.bam_transcript
+    multiqc_files = multiqc_files.mix(STAR_ALIGN.out.log_final)
 
     ch_star_unsorted_bam = STAR_ALIGN.out.bam_unsorted
     sorted_bam = STAR_ALIGN.out.bam_sorted_aligned.map { meta, sam ->
@@ -62,7 +64,6 @@ workflow STAR_WF {
     sorted_mkdup_bam = SAMBAMBA_MARKDUP.out.bam.join(SAMBAMBA_MARKDUP.out.bai)
     versions         = versions.mix(SAMBAMBA_MARKDUP.out.versions)
 
-
     SAMBAMBA_FLAGSTAT(
         SAMBAMBA_MARKDUP.out.bam
     )
@@ -83,6 +84,8 @@ workflow STAR_WF {
     multiqc_files
     ch_star_sorted_mkdup_bam
     ch_star_unsorted_bam
+    ch_star_transcripts
     chimera_sam
     flagstat
+    index
 }

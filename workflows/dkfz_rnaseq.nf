@@ -34,7 +34,7 @@ workflow DKFZ_RNASEQ {
     // create reference channels
     fasta_ch = params.fasta ? channel.fromPath(params.fasta, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
     fai_ch   = params.fai   ? channel.fromPath(params.fai, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
-    star_ch                 = params.star_index  ? channel.fromPath(params.star_index, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
+    star_ch                 = params.star  ? channel.fromPath(params.star, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
     kallisto_ch             = params.kallisto_index  ? channel.fromPath(params.kallisto_index, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
     rsem_ch                 = params.rsem_index  ? channel.fromPath(params.rsem_index, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
     salmon_ch               = params.salmon_index  ? channel.fromPath(params.salmon_index, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()

@@ -22,7 +22,7 @@ workflow STAR_WF {
 
     // star index is highly depend on star version!! the one in igenomes is not suitable to 2.7.10
     // Fixed the space in the || operator
-    if (!params.star) {
+    if (!params.star || params.generate_star_index) {
         STAR_GENOMEGENERATE (
             fasta,
             gtf

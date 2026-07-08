@@ -11,7 +11,7 @@ include { SAMBAMBA_FLAGSTAT   } from '../../../modules/nf-core/sambamba/flagstat
 workflow STAR_WF {
     take:
     samplesheet     // channel: [val(meta), reads ]
-    index           // channel: [val(meta), star_index] 
+    star            // channel: [val(meta), star_index] 
     fasta           // channel: [val(meta), fasta]
     gtf             // channel: [val(meta), gtf]
 
@@ -20,21 +20,22 @@ workflow STAR_WF {
     versions = channel.empty()
     multiqc_files = channel.empty()
 
+    // star index is highly depend on star version!! the one in igenomes is not suitable to 2.7.10
     // Fixed the space in the || operator
-    if (!params.star_index) {
-
+    if (!params.star) {
         STAR_GENOMEGENERATE (
             fasta,
             gtf
         )
-        index = STAR_GENOMEGENERATE.out.index
+        star = STAR_GENOMEGENERATE.out.index
     }
-    
+
+
     STAR_ALIGN (
         samplesheet,
-        index,
+        star,
         gtf,
-        true,
+        false,
         params.seq_platform,
         params.seq_center
     )
@@ -51,6 +52,9 @@ workflow STAR_WF {
         def new_meta = meta + [ chimera: true ]
         return [ new_meta, sam ]
     }
+
+    sorted_bam_arriba = channel.empty()
+    chimera_sam_arriba = channel.empty()
 
     SAMTOOLS_SORT(
         chimera_sam,
@@ -87,5 +91,4 @@ workflow STAR_WF {
     ch_star_transcripts
     chimera_sam
     flagstat
-    index
 }

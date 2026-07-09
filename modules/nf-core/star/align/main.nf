@@ -32,7 +32,7 @@ process STAR_ALIGN {
     tuple val(meta), path('*.ReadsPerGene.out.tab')                  , optional:true, emit: read_per_gene_tab
     tuple val(meta), path('*.out.junction')                          , optional:true, emit: junction
     tuple val(meta), path('*.out.sam')                               , optional:true, emit: sam
-    tuple val(meta), path('*.Chimeric.out_sorted_markdup.bam')       , optional:true, emit: chimeric_bam
+    tuple val(meta), path('*.Chimeric.out.junction')                 , optional:true, emit: chimeric_junction
     tuple val(meta), path('*.wig')                                   , optional:true, emit: wig
     tuple val(meta), path('*.bg')                                    , optional:true, emit: bedgraph
 

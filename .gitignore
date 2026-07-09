@@ -10,3 +10,4 @@ null/
 r210*
 tests/hg38_gencode.v31.annotation.plain.gtf
 results*/*
+.nf-test/*

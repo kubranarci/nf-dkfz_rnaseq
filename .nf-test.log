@@ -1,0 +1,23 @@
+Jul-09 11:12:42.545 [main] INFO  com.askimed.nf.test.App - nf-test 0.9.4
+Jul-09 11:12:42.559 [main] INFO  com.askimed.nf.test.App - Arguments: [test, /omics/groups/OE0608/internal/kubran/nf-dkfz_rnaseq/tests/default.nf.test, --profile, singularity, --update-snapshot]
+Jul-09 11:12:43.588 [main] INFO  com.askimed.nf.test.App - Nextflow Version: 25.10.4
+Jul-09 11:12:43.590 [main] INFO  com.askimed.nf.test.commands.RunTestsCommand - Load config from file /omics/groups/OE0608/internal/kubran/nf-dkfz_rnaseq/nf-test.config...
+Jul-09 11:12:53.745 [main] INFO  com.askimed.nf.test.lang.dependencies.DependencyResolver - Loaded 49 files from directory /omics/groups/OE0608/internal/kubran/nf-dkfz_rnaseq in 9.559 sec
+Jul-09 11:12:53.749 [main] INFO  com.askimed.nf.test.lang.dependencies.DependencyResolver - Found 1 files containing tests.
+Jul-09 11:12:53.749 [main] DEBUG com.askimed.nf.test.lang.dependencies.DependencyResolver - Found files: [/omics/groups/OE0608/internal/kubran/nf-dkfz_rnaseq/tests/default.nf.test]
+Jul-09 11:12:54.002 [main] INFO  com.askimed.nf.test.commands.RunTestsCommand - Found 2 tests to execute.
+Jul-09 11:12:54.003 [main] INFO  com.askimed.nf.test.core.TestExecutionEngine - Started test plan
+Jul-09 11:12:54.003 [main] INFO  com.askimed.nf.test.core.TestExecutionEngine - Running testsuite 'Test pipeline' from file '/omics/groups/OE0608/internal/kubran/nf-dkfz_rnaseq/tests/default.nf.test'.
+Jul-09 11:12:54.004 [main] INFO  com.askimed.nf.test.core.TestExecutionEngine - Run test '1d841812: -profile test'. type: com.askimed.nf.test.lang.pipeline.PipelineTest
+Jul-09 11:16:11.218 [main] DEBUG com.askimed.nf.test.lang.extensions.SnapshotFile - Load snapshots from file '/omics/groups/OE0608/internal/kubran/nf-dkfz_rnaseq/tests/default.nf.test.snap'
+Jul-09 11:16:11.274 [main] DEBUG com.askimed.nf.test.lang.extensions.Snapshot - Snapshots '-profile test' do not match. Update snapshots flag set.
+Jul-09 11:16:11.274 [main] DEBUG com.askimed.nf.test.lang.extensions.SnapshotFile - Updated snapshot '-profile test'
+Jul-09 11:16:11.310 [main] DEBUG com.askimed.nf.test.lang.extensions.SnapshotFile - Wrote snapshots to file '/omics/groups/OE0608/internal/kubran/nf-dkfz_rnaseq/tests/default.nf.test.snap'
+Jul-09 11:16:11.311 [main] INFO  com.askimed.nf.test.core.TestExecutionEngine - Test '1d841812: -profile test' finished. status: PASSED
+Jul-09 11:16:11.313 [main] INFO  com.askimed.nf.test.core.TestExecutionEngine - Run test '6ff8125e: -profile test -stub'. type: com.askimed.nf.test.lang.pipeline.PipelineTest
+Jul-09 11:16:43.625 [main] DEBUG com.askimed.nf.test.lang.extensions.Snapshot - Snapshots '-profile test -stub' do not match. Update snapshots flag set.
+Jul-09 11:16:43.626 [main] DEBUG com.askimed.nf.test.lang.extensions.SnapshotFile - Updated snapshot '-profile test -stub'
+Jul-09 11:16:43.645 [main] DEBUG com.askimed.nf.test.lang.extensions.SnapshotFile - Wrote snapshots to file '/omics/groups/OE0608/internal/kubran/nf-dkfz_rnaseq/tests/default.nf.test.snap'
+Jul-09 11:16:43.646 [main] INFO  com.askimed.nf.test.core.TestExecutionEngine - Test '6ff8125e: -profile test -stub' finished. status: PASSED
+Jul-09 11:16:43.647 [main] INFO  com.askimed.nf.test.core.TestExecutionEngine - Testsuite 'Test pipeline' finished. snapshot file: true, skipped tests: false, failed tests: false
+Jul-09 11:16:43.652 [main] INFO  com.askimed.nf.test.core.TestExecutionEngine - Executed 2 tests. 0 tests failed. Done!

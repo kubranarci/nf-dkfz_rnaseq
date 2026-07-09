@@ -43,17 +43,19 @@ workflow STAR_ARRIBA_WF {
         cytobands       = ARRIBA_DOWNLOAD.out.cytobands
         protein_domains = ARRIBA_DOWNLOAD.out.protein_domains
         viral           = ARRIBA_DOWNLOAD.out.viral_genome
-    }
 
+        GUNZIP(
+            viral.map{file -> tuple ([id:'viral'], file)}
+        )
+        viral = GUNZIP.out.gunzip
+    }
 
 
     // 2. Concatenate Human + Viral FASTAs if the combined file is missing
     if (!params.fasta_with_virus && has_virus_list) {
-        GUNZIP(
-            viral.map{file -> tuple ([id:'viral'], file)}
-        )
+
         ch_fasta_to_concat = fasta
-            .combine(GUNZIP.out.gunzip)
+            .combine(viral)
             .map { meta, human_fa, _meta2, viral_fa -> 
                 tuple(meta, [ human_fa, viral_fa ]) 
             }
@@ -87,6 +89,11 @@ workflow STAR_ARRIBA_WF {
 
     ch_out_bam  = STAR_ALIGN.out.bam
 
+    if (!params.fasta_with_virus) {
+        fasta_with_virus = fasta
+    }
+
+    // this part should run with fasta with virus!
     if (has_virus_list) {
         SAMTOOLS_VIEW(
             ch_out_bam.map{meta, file -> tuple(meta, file, [])},
@@ -96,6 +103,7 @@ workflow STAR_ARRIBA_WF {
         )
         ch_out_bam = SAMTOOLS_VIEW.out.bam
     }
+
 
     emit:
     versions

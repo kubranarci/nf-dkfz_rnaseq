@@ -32,11 +32,12 @@ process ARRIBA_ARRIBA {
     def known_fusions_arg   = known_fusions   ? "-k ${known_fusions}"   : ""
     def cytobands_arg       = cytobands       ? "-d ${cytobands}"       : ""
     def protein_domains_arg = protein_domains ? "-p ${protein_domains}" : ""
+    def chimers_arg         = chimers         ? "-c ${chimers}"         : "" //chimers can be withinbam 
 
     """
     arriba \\
         -x ${bam} \\
-        -c ${chimers} \\
+        ${chimers_arg} \\
         -a ${fasta} \\
         -g ${gtf} \\
         -o ${prefix}.fusions.tsv \\

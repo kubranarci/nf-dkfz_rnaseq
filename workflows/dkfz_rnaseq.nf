@@ -10,6 +10,7 @@ include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pi
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_dkfz_rnaseq_pipeline'
 include { STAR_WF                } from '../subworkflows/local/star_wf/main'
+include { STAR_ARRIBA_WF         } from '../subworkflows/local/star_arriba_wf/main'
 include { KALLISTO_WF            } from '../subworkflows/local/kallisto_wf/main'
 include { ARRIBA_WF              } from '../subworkflows/local/arriba_wf/main'
 include { QC_WF                  } from '../subworkflows/local/qc_wf/main'
@@ -33,7 +34,7 @@ workflow DKFZ_RNASEQ {
     // create reference channels
     fasta_ch = params.fasta ? channel.fromPath(params.fasta, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
     fai_ch   = params.fai   ? channel.fromPath(params.fai, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
-    star_ch                 = params.star_index  ? channel.fromPath(params.star_index, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
+    star_ch                 = params.star  ? channel.fromPath(params.star, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
     kallisto_ch             = params.kallisto_index  ? channel.fromPath(params.kallisto_index, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
     rsem_ch                 = params.rsem_index  ? channel.fromPath(params.rsem_index, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
     salmon_ch               = params.salmon_index  ? channel.fromPath(params.salmon_index, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
@@ -43,6 +44,16 @@ workflow DKFZ_RNASEQ {
     gencode_dexseq_ch       = params.gencode_dexseq   ? channel.fromPath(params.gencode_dexseq, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
     fingerprinting_sites_ch = params.fingerprinting_sites ? channel.fromPath(params.fingerprinting_sites, checkIfExists: true).collect() : channel.empty()
     transcriptome_ch        = params.transcriptome   ? channel.fromPath(params.transcriptome, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
+
+    // arriba reference channels
+    fasta_with_virus_ch     = params.fasta_with_virus      ? channel.fromPath(params.fasta_with_virus, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
+    star_arriba_index_ch    = params.star_arriba_index     ? channel.fromPath(params.star_arriba_index, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
+    arriba_gtf_ch           = params.arriba_gtf            ? channel.fromPath(params.arriba_gtf, checkIfExists: true).map { file -> tuple([id: file.getSimpleName()], file) }.collect() : channel.empty()
+    viral_ch                = params.refseq_viral_genome   ? channel.fromPath(params.refseq_viral_genome, checkIfExists: true).collect() : channel.empty()
+    knownfusions_ch         = params.knownfusions          ? channel.fromPath(params.knownfusions, checkIfExists: true).collect() : channel.empty()
+    blacklist_ch            = params.blacklist             ? channel.fromPath(params.blacklist, checkIfExists: true).collect() : channel.empty()
+    protein_domains_ch      = params.proteinDomains        ? channel.fromPath(params.proteinDomains, checkIfExists: true).collect() : channel.empty()
+    cytobands_ch            = params.cytobands             ? channel.fromPath(params.cytobands, checkIfExists: true).collect() : channel.empty()
 
     ch_versions = channel.empty()
     ch_multiqc_files = channel.empty()
@@ -122,23 +133,33 @@ workflow DKFZ_RNASEQ {
     }
     else
     {
-        STAR_WF.out.chimera_sam.map { meta, sam ->
-            def new_meta = meta.clone()
-            new_meta.remove('chimera')
-            return [ new_meta, sam ]
-        }.set{ch_star_chimera}
-
-        STAR_WF.out.ch_star_sorted_mkdup_bam.map { meta, bam, bai ->
-            def new_meta = meta.clone()
-            new_meta.remove('chimera')
-            return [ new_meta, bam, bai ]
-        }.set{ch_star_sorted_mkdup_bam}
+        if (!params.ignoreViruses){
+            star_arriba_index_ch = star_ch
+        }
+        STAR_ARRIBA_WF(
+            ch_samplesheet,
+            star_arriba_index_ch,
+            fasta_ch,
+            fai_ch,
+            fasta_with_virus_ch,
+            arriba_gtf_ch,
+            viral_ch,
+            blacklist_ch,
+            knownfusions_ch,
+            cytobands_ch,
+            protein_domains_ch
+        )
+        star_arriba_index_ch = STAR_ARRIBA_WF.out.arriba  
+        fasta_with_virus_ch = STAR_ARRIBA_WF.out.fasta_with_virus
 
         ARRIBA_WF(
-            ch_star_sorted_mkdup_bam.join(ch_star_chimera),
-            fasta_ch,
-            gencode_gtf_ch,
-            [],[]
+            STAR_ARRIBA_WF.out.ch_out_bam,
+            fasta_with_virus_ch,
+            arriba_gtf_ch,
+            STAR_ARRIBA_WF.out.blacklist,
+            STAR_ARRIBA_WF.out.known_fusions,
+            STAR_ARRIBA_WF.out.cytobands,
+            STAR_ARRIBA_WF.out.protein_domains
         )
         ch_versions = ch_versions.mix(ARRIBA_WF.out.versions)
         ch_multiqc_files = ch_multiqc_files.mix(ARRIBA_WF.out.multiqc_files.map{ _meta, files -> files })

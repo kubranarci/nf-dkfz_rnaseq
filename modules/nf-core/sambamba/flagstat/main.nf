@@ -31,4 +31,14 @@ process SAMBAMBA_FLAGSTAT {
         sambamba: \$(echo \$(sambamba --version 2>&1) | awk '{print \$2}' )
     END_VERSIONS
     """
+    stub:
+    prefix = task.ext.prefix ?: "${meta.id}"
+    """
+    touch ${prefix}.stats
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        sambamba: \$(echo \$(sambamba --version 2>&1) | awk '{print \$2}' )
+    END_VERSIONS
+    """
 }

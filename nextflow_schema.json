@@ -92,7 +92,18 @@
                     "fa_icon": "fas fa-dna",
                     "default": false,
                     "help_text": "If set to true, the pipeline will generate a STAR index using the provided FASTA and GTF files. Make sure to provide valid paths to these files using the `--fasta` and `--gtf` parameters."
-                }
+                },
+                "ignoreViruses ": {
+                    "type": "string",
+                    "description": "viruses to omit from the results. for example: Coliphage",
+                    "fa_icon": "fas fa-synagogue"
+                },
+                "viralContigs ": {
+                    "type": "string",
+                    "description": "regular expression matchings names of viral contigs",
+                    "fa_icon": "fas fa-synagogue"
+                }                
+
             }
         },
         "reference_genome_options": {
@@ -112,9 +123,19 @@
                     "format": "file-path",
                     "exists": true,
                     "mimetype": "text/plain",
-                    "pattern": "^\\S+\\.fn?a(sta)?(\\.gz)?$",
+                    "pattern": "^\\S+\\.fn?a(sta)?$",
                     "description": "Path to FASTA genome file.",
-                    "help_text": "This parameter is *mandatory* if `--genome` is not specified. If you don't have a BWA index available this will be generated for you automatically. Combine with `--save_reference` to save BWA index for future runs.",
+                    "help_text": "This parameter is *mandatory* if `--genome` is not specified.",
+                    "fa_icon": "far fa-file-code"
+                },
+                "fasta_with_virus": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.fn?a(sta)?$",
+                    "description": "Path to FASTA genome file.",
+                    "help_text": "This parameter is *mandatory* if `ignoreViruses` list viruses, AND  `refseq_viral_genome` is not specified. If `ignoreViruses` is false, `fasta_with_virus` and `refseq_viral_genome` can be ignored ",
                     "fa_icon": "far fa-file-code"
                 },
                 "gtf": {
@@ -133,6 +154,15 @@
                     "mimetype": "text/plain",
                     "pattern": "^\\S+\\.gtf(\\.gz)?$",
                     "description": "Path to Genecode GTF annotation file.",
+                    "fa_icon": "far fa-file-code"
+                },
+                "arriba_gtf": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.gtf(\\.gz)?$",
+                    "description": "Path to ARRIBA Genecode GTF annotation file.",
                     "fa_icon": "far fa-file-code"
                 },
                 "transcriptome": {
@@ -162,7 +192,7 @@
                     "description": "Path to Genecode DEXSEQ file.",
                     "fa_icon": "far fa-file-code"
                 },
-                "star_index": {
+                "star": {
                     "type": "string",
                     "format": "path",
                     "exists": true,
@@ -198,6 +228,59 @@
                     "exists": true,
                     "fa_icon": "fas fa-bezier-curve",
                     "description": "Path to directory fa file for pre-built SALMON index. Will be build if not exist"
+                },
+                "star_arriba_index": {
+                    "type": "string",
+                    "format": "path",
+                    "exists": true,
+                    "fa_icon": "fas fa-bezier-curve",
+                    "description": "Path to directory or tar.gz archive for pre-built STAR index build for arriba. This index should be integrated with viral genome. Will be build if not exist, provide refseq_viral_genome "
+                },
+                "refseq_viral_genome": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.fn?a(sta)?(\\.gz)?$",
+                    "description": "Path to REFSEQ VIRAL FASTA genome file.",
+                    "help_text": "This parameter is *mandatory* if `--star_arriba_index` or '--fasta_with_virus' is not specified. If you don't have a star_arriba_index or fasta_with_virus available this will be generated for you automatically.",
+                    "fa_icon": "far fa-file-code"
+                },
+                "blacklist": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.tsv(\\.gz)?$",
+                    "description": "Path to tsv file. Blacklist to remove recurrent false positive fusion calls in arriba",
+                    "fa_icon": "far fa-file-code"
+                },
+                "knownfusions": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.tsv(\\.gz)?$",
+                    "description": "Path to tsv file. file with known fusions for improved sensitivity in arriba",
+                    "fa_icon": "far fa-file-code"
+                },
+                "proteinDomains": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.gff3$",
+                    "description": "Protein domains in GFF3 format to annotate domains retained in fusions in arriba.",
+                    "fa_icon": "far fa-file-code"
+                },
+                "cytobands": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.tsv$",
+                    "description": "Path to tsv file. file with cytobands to draw ideograms in fusion plotsin arriba",
+                    "fa_icon": "far fa-file-code"
                 },
                 "igenomes_ignore": {
                     "type": "boolean",
